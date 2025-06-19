@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汇丰Trade25港股成交价计算器</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .calculator {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #db0011;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #b30000;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h2>汇丰Trade25港股成交价计算器</h2>
+        <div class="form-group">
+            <label for="price">股票单价 (港币)</label>
+            <input type="number" id="price" step="0.001" min="0">
+        </div>
+        <div class="form-group">
+            <label for="quantity">股票数量</label>
+            <input type="number" id="quantity" min="0">
+        </div>
+        <div class="form-group">
+            <label for="profitGoal">赚钱目标 (港币)</label>
+            <input type="number" id="profitGoal" min="0">
+        </div>
+        <div class="form-group">
+            <label for="sellPrice">卖出价格 (港币)</label>
+            <input type="number" id="sellPrice" step="0.001" min="0">
+        </div>
+        <button onclick="calculate()">计算</button>
+        <div id="result" class="result" style="display: none;">
+            <!-- 结果将在这里显示 -->
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            const price = parseFloat(document.getElementById('price').value);
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const profitGoal = parseFloat(document.getElementById('profitGoal').value);
+            const sellPrice = parseFloat(document.getElementById('sellPrice').value);
+
+            if (!price || !quantity) {
+                alert('请输入有效的价格和数量');
+                return;
+            }
+
+            const totalValue = price * quantity;
+            
+            // 印花税 0.13%
+            const stampDuty = totalValue * 0.0013;
+            
+            // 交易费 0.00565%
+            const tradingFee = totalValue * 0.0000565;
+            
+            // 交易征费 0.00015%
+            const tradingLevy = totalValue * 0.00000015;
+            
+            // 财汇局交易征费 0.00015%
+            const frcLevy = totalValue * 0.00000015;
+            
+            // 结算费 0.002%
+            const settlementFee = totalValue * 0.00002;
+            // 结算费 0.002%
+            const charge = 2;
+
+            // 总成本
+            const totalCost = totalValue + stampDuty + tradingFee + tradingLevy + frcLevy + settlementFee + charge;
+
+            let sellTotalValue = 0;
+            let sellStampDuty = 0;
+            let sellTradingFee = 0;
+            let sellTradingLevy = 0;
+            let sellFrcLevy = 0;
+            let sellSettlementFee = 0;
+            let sellCharge = 2;
+            let sellTotalCost = 0;
+            let requiredSellPrice = 0;
+            let profit = 0;
+
+            if (profitGoal) {
+                // 计算卖出时的税费
+                sellTotalValue = totalCost + profitGoal;
+                sellStampDuty = sellTotalValue * 0.0013;
+                sellTradingFee = sellTotalValue * 0.0000565;
+                sellTradingLevy = sellTotalValue * 0.00000015;
+                sellFrcLevy = sellTotalValue * 0.00000015;
+                sellSettlementFee = sellTotalValue * 0.00002;
+                sellTotalCost = sellTotalValue + sellStampDuty + sellTradingFee + sellTradingLevy + sellFrcLevy + sellSettlementFee + sellCharge;
+                requiredSellPrice = sellTotalCost / quantity;
+            }
+
+            if (sellPrice) {
+                sellTotalValue = sellPrice * quantity;
+                sellStampDuty = sellTotalValue * 0.0013;
+                sellTradingFee = sellTotalValue * 0.0000565;
+                sellTradingLevy = sellTotalValue * 0.00000015;
+                sellFrcLevy = sellTotalValue * 0.00000015;
+                sellSettlementFee = sellTotalValue * 0.00002;
+                sellTotalCost = sellTotalValue - sellStampDuty - sellTradingFee - sellTradingLevy - sellFrcLevy - sellSettlementFee - sellCharge;
+                profit = sellTotalCost - totalCost;
+            }
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            let resultHTML = `
+                <div class="result-item">
+                    <span>交易金额：</span>
+                    <span>HK$ ${totalValue.toFixed(3)}</span>
+                </div>
+                <div class="result-item">
+                    <span>印花税 (0.13%)：</span>
+                    <span>HK$ ${stampDuty.toFixed(3)}</span>
+                </div>
+                <div class="result-item">
+                    <span>交易费 (0.00565%)：</span>
+                    <span>HK$ ${tradingFee.toFixed(3)}</span>
+                </div>
+                <div class="result-item">
+                    <span>交易征费 (0.00015%)：</span>
+                    <span>HK$ ${tradingLevy.toFixed(3)}</span>
+                </div>
+                <div class="result-item">
+                    <span>财汇局交易征费 (0.00015%)：</span>
+                    <span>HK$ ${frcLevy.toFixed(3)}</span>
+                </div>
+                <div class="result-item">
+                    <span>结算费 (0.002%)：</span>
+                    <span>HK$ ${settlementFee.toFixed(3)}</span>
+                </div>
+                <div class="result-item">
+                    <span>手续费 ：</span>
+                    <span>HK$ ${charge.toFixed(3)}</span>
+                </div>
+                <div class="result-item">
+                    <span>总成本：</span>
+                    <span>HK$ ${totalCost.toFixed(3)}</span>
+                </div>
+            `;
+
+            if (profitGoal) {
+                resultHTML += `
+                    <div class="result-item">
+                        <span>达到赚钱目标所需卖出总价：</span>
+                        <span>HK$ ${sellTotalCost.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>达到赚钱目标所需卖出单价：</span>
+                        <span>HK$ ${requiredSellPrice.toFixed(3)}</span>
+                    </div>
+                `;
+            }
+
+            if (sellPrice) {
+                resultHTML += `
+                    <div class="result-item">
+                        <span>卖出交易金额：</span>
+                        <span>HK$ ${sellTotalValue.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>卖出印花税 (0.13%)：</span>
+                        <span>HK$ ${sellStampDuty.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>卖出交易费 (0.00565%)：</span>
+                        <span>HK$ ${sellTradingFee.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>卖出交易征费 (0.00015%)：</span>
+                        <span>HK$ ${sellTradingLevy.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>卖出财汇局交易征费 (0.00015%)：</span>
+                        <span>HK$ ${sellFrcLevy.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>卖出结算费 (0.002%)：</span>
+                        <span>HK$ ${sellSettlementFee.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>卖出手续费 ：</span>
+                        <span>HK$ ${sellCharge.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>卖出后实际收入：</span>
+                        <span>HK$ ${sellTotalCost.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>盈利：</span>
+                        <span>HK$ ${profit.toFixed(3)}</span>
+                    </div>
+                `;
+            }
+
+            resultDiv.innerHTML = resultHTML;
+        }
+    </script>
+</body>
+</html>
