@@ -52,6 +52,21 @@
             background-color: #f8f9fa;
             border-radius: 4px;
         }
+        .result-section {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .result-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .result-section h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #333;
+        }
         .result-item {
             display: flex;
             justify-content: space-between;
@@ -118,7 +133,7 @@
             
             // 结算费 0.002%
             const settlementFee = totalValue * 0.00002;
-            // 结算费 0.002%
+            // 手续费
             const charge = 2;
 
             // 总成本
@@ -137,14 +152,17 @@
 
             if (profitGoal) {
                 // 计算卖出时的税费
-                sellTotalValue = totalCost + profitGoal;
+                // 这里需要解一个方程：sellTotalValue - 卖出税费 = totalCost + profitGoal
+                // 卖出税费 = sellTotalValue * (0.0013 + 0.0000565 + 0.00000015 + 0.00000015 + 0.00002) + 2
+                // 简化为：sellTotalValue = (totalCost + profitGoal + 2) / (1 - 0.0013568)
+                sellTotalValue = (totalCost + profitGoal + sellCharge) / (1 - 0.0013568);
                 sellStampDuty = sellTotalValue * 0.0013;
                 sellTradingFee = sellTotalValue * 0.0000565;
                 sellTradingLevy = sellTotalValue * 0.00000015;
                 sellFrcLevy = sellTotalValue * 0.00000015;
                 sellSettlementFee = sellTotalValue * 0.00002;
-                sellTotalCost = sellTotalValue + sellStampDuty + sellTradingFee + sellTradingLevy + sellFrcLevy + sellSettlementFee + sellCharge;
-                requiredSellPrice = sellTotalCost / quantity;
+                sellTotalCost = sellTotalValue - sellStampDuty - sellTradingFee - sellTradingLevy - sellFrcLevy - sellSettlementFee - sellCharge;
+                requiredSellPrice = sellTotalValue / quantity;
             }
 
             if (sellPrice) {
@@ -161,90 +179,103 @@
             const resultDiv = document.getElementById('result');
             resultDiv.style.display = 'block';
             let resultHTML = `
-                <div class="result-item">
-                    <span>交易金额：</span>
-                    <span>HK$ ${totalValue.toFixed(3)}</span>
-                </div>
-                <div class="result-item">
-                    <span>印花税 (0.13%)：</span>
-                    <span>HK$ ${stampDuty.toFixed(3)}</span>
-                </div>
-                <div class="result-item">
-                    <span>交易费 (0.00565%)：</span>
-                    <span>HK$ ${tradingFee.toFixed(3)}</span>
-                </div>
-                <div class="result-item">
-                    <span>交易征费 (0.00015%)：</span>
-                    <span>HK$ ${tradingLevy.toFixed(3)}</span>
-                </div>
-                <div class="result-item">
-                    <span>财汇局交易征费 (0.00015%)：</span>
-                    <span>HK$ ${frcLevy.toFixed(3)}</span>
-                </div>
-                <div class="result-item">
-                    <span>结算费 (0.002%)：</span>
-                    <span>HK$ ${settlementFee.toFixed(3)}</span>
-                </div>
-                <div class="result-item">
-                    <span>手续费 ：</span>
-                    <span>HK$ ${charge.toFixed(3)}</span>
-                </div>
-                <div class="result-item">
-                    <span>总成本：</span>
-                    <span>HK$ ${totalCost.toFixed(3)}</span>
+                <div class="result-section">
+                    <h3>买入成本计算</h3>
+                    <div class="result-item">
+                        <span>交易金额：</span>
+                        <span>HK$ ${totalValue.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>印花税 (0.13%)：</span>
+                        <span>HK$ ${stampDuty.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>交易费 (0.00565%)：</span>
+                        <span>HK$ ${tradingFee.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>交易征费 (0.00015%)：</span>
+                        <span>HK$ ${tradingLevy.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>财汇局交易征费 (0.00015%)：</span>
+                        <span>HK$ ${frcLevy.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>结算费 (0.002%)：</span>
+                        <span>HK$ ${settlementFee.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>手续费 ：</span>
+                        <span>HK$ ${charge.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>总成本：</span>
+                        <span>HK$ ${totalCost.toFixed(3)}</span>
+                    </div>
                 </div>
             `;
 
             if (profitGoal) {
                 resultHTML += `
-                    <div class="result-item">
-                        <span>达到赚钱目标所需卖出总价：</span>
-                        <span>HK$ ${sellTotalCost.toFixed(3)}</span>
-                    </div>
-                    <div class="result-item">
-                        <span>达到赚钱目标所需卖出单价：</span>
-                        <span>HK$ ${requiredSellPrice.toFixed(3)}</span>
+                    <div class="result-section">
+                        <h3>赚钱目标计算</h3>
+                        <div class="result-item">
+                            <span>目标盈利：</span>
+                            <span>HK$ ${profitGoal.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>达到赚钱目标所需卖出总价：</span>
+                            <span>HK$ ${sellTotalValue.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>达到赚钱目标所需卖出单价：</span>
+                            <span>HK$ ${requiredSellPrice.toFixed(3)}</span>
+                        </div>
                     </div>
                 `;
             }
 
             if (sellPrice) {
                 resultHTML += `
-                    <div class="result-item">
-                        <span>卖出交易金额：</span>
-                        <span>HK$ ${sellTotalValue.toFixed(3)}</span>
-                    </div>
-                    <div class="result-item">
-                        <span>卖出印花税 (0.13%)：</span>
-                        <span>HK$ ${sellStampDuty.toFixed(3)}</span>
-                    </div>
-                    <div class="result-item">
-                        <span>卖出交易费 (0.00565%)：</span>
-                        <span>HK$ ${sellTradingFee.toFixed(3)}</span>
-                    </div>
-                    <div class="result-item">
-                        <span>卖出交易征费 (0.00015%)：</span>
-                        <span>HK$ ${sellTradingLevy.toFixed(3)}</span>
-                    </div>
-                    <div class="result-item">
-                        <span>卖出财汇局交易征费 (0.00015%)：</span>
-                        <span>HK$ ${sellFrcLevy.toFixed(3)}</span>
-                    </div>
-                    <div class="result-item">
-                        <span>卖出结算费 (0.002%)：</span>
-                        <span>HK$ ${sellSettlementFee.toFixed(3)}</span>
-                    </div>
-                    <div class="result-item">
-                        <span>卖出手续费 ：</span>
-                        <span>HK$ ${sellCharge.toFixed(3)}</span>
-                    </div>
-                    <div class="result-item">
-                        <span>卖出后实际收入：</span>
-                        <span>HK$ ${sellTotalCost.toFixed(3)}</span>
-                    </div>
-                    <div class="result-item">
-                        <span>盈利：</span>
-                        <span>HK$ ${profit.toFixed(3)}</span>
+                    <div class="result-section">
+                        <h3>卖出价格计算</h3>
+                        <div class="result-item">
+                            <span>卖出交易金额：</span>
+                            <span>HK$ ${sellTotalValue.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>卖出印花税 (0.13%)：</span>
+                            <span>HK$ ${sellStampDuty.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>卖出交易费 (0.00565%)：</span>
+                            <span>HK$ ${sellTradingFee.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>卖出交易征费 (0.00015%)：</span>
+                            <span>HK$ ${sellTradingLevy.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>卖出财汇局交易征费 (0.00015%)：</span>
+                            <span>HK$ ${sellFrcLevy.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>卖出结算费 (0.002%)：</span>
+                            <span>HK$ ${sellSettlementFee.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>卖出手续费 ：</span>
+                            <span>HK$ ${sellCharge.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>卖出后实际收入：</span>
+                            <span>HK$ ${sellTotalCost.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>盈利：</span>
+                            <span style="color: ${profit >= 0 ? 'green' : 'red'}">HK$ ${profit.toFixed(3)}</span>
+                        </div>
                     </div>
                 `;
             }
