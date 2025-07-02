@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>字段名转换工具 - 多模式转换</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+  
+  <!-- Tailwind配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#4080FF',
+            neutral: {
+              100: '#F5F7FA',
+              200: '#E5E6EB',
+              300: '#C9CDD4',
+              400: '#86909C',
+              500: '#4E5969',
+              600: '#272E3B',
+              700: '#1D2129',
+            }
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            'card': '0 4px 20px rgba(0, 0, 0, 0.08)',
+            'card-hover': '0 8px 30px rgba(0, 0, 0, 0.12)',
+          }
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .transition-all-300 {
+        transition: all 300ms ease-in-out;
+      }
+      .textarea-focus {
+        @apply border-primary ring-2 ring-primary/20;
+      }
+      .tab-active {
+        @apply text-primary border-b-2 border-primary font-medium;
+      }
+      .input-focus {
+        @apply focus:ring-2 focus:ring-primary/50 focus:border-primary;
+      }
+      .btn-hover {
+        @apply hover:shadow-md hover:-translate-y-0.5 transition-all duration-200;
+      }
+    }
+  </style>
+</head>
+<body class="bg-neutral-100 font-inter text-neutral-700 min-h-screen flex flex-col">
+  <!-- 导航栏 -->
+  <header class="bg-white shadow-sm sticky top-0 z-10">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <i class="fa-solid fa-exchange text-primary text-xl"></i>
+        <h1 class="text-xl font-bold text-neutral-700">字段名转换工具</h1>
+      </div>
+      <div class="flex items-center space-x-4">
+        <button id="theme-toggle" class="p-2 rounded-full hover:bg-neutral-100 transition-all-300">
+          <i class="fa-solid fa-moon text-neutral-500"></i>
+        </button>
+        <button id="copy-all-btn" class="hidden md:flex items-center space-x-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition-all-300">
+          <i class="fa-solid fa-copy"></i>
+          <span>复制全部</span>
+        </button>
+        <button id="mobile-menu-btn" class="md:hidden p-2 rounded-full hover:bg-neutral-100 transition-all-300">
+          <i class="fa-solid fa-bars text-neutral-500"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 移动端菜单 (默认隐藏) -->
+  <div id="mobile-menu" class="md:hidden bg-white shadow-lg absolute top-16 left-0 right-0 z-20 transform -translate-y-full transition-transform duration-300 ease-in-out">
+    <div class="container mx-auto px-4 py-3">
+      <button id="copy-all-mobile-btn" class="w-full flex items-center justify-center space-x-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition-all-300">
+        <i class="fa-solid fa-copy"></i>
+        <span>复制全部</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 主要内容区 -->
+  <main class="flex-grow container mx-auto px-4 py-8">
+    <!-- 介绍卡片 -->
+    <div class="bg-white rounded-xl shadow-card p-6 mb-8 transform hover:translate-y-[-2px] transition-all-300">
+      <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-neutral-700 mb-3">数据库字段转换工具</h2>
+      <p class="text-neutral-500 mb-4">支持多种字段名和字段类型转换，包括下划线转驼峰、驼峰转下划线等。</p>
+      <div class="flex flex-wrap gap-2">
+        <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">下划线转驼峰</span>
+        <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">驼峰转下划线</span>
+        <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">字段类型解析</span>
+        <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">批量处理</span>
+        <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">首字母大写选项</span>
+        <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">即时转换</span>
+      </div>
+    </div>
+
+    <!-- 选项卡导航 -->
+    <div class="flex border-b border-neutral-200 mb-6">
+      <button id="name-tab" class="tab-active py-3 px-4 focus:outline-none">
+        <i class="fa-solid fa-font mr-2"></i>字段名转换（下划线转驼峰）
+      </button>
+      <button id="bean-to-snake-tab" class="py-3 px-4 text-neutral-500 hover:text-neutral-700 focus:outline-none">
+        <i class="fa-solid fa-code mr-2"></i>Java Bean → 数据库命名
+      </button>
+      <button id="type-tab" class="py-3 px-4 text-neutral-500 hover:text-neutral-700 focus:outline-none">
+        <i class="fa-solid fa-database mr-2"></i>字段类型转换
+      </button>
+      <button id="ddl-tab" class="py-3 px-4 text-neutral-500 hover:text-neutral-700 focus:outline-none">
+        <i class="fa-solid fa-file-code mr-2"></i>SQL DDL生成
+      </button>
+    </div>
+
+    <!-- 字段名转换区域（下划线转驼峰） -->
+    <div id="name-converter" class="grid md:grid-cols-2 gap-6">
+      <!-- 输入区域 -->
+      <div class="bg-white rounded-xl shadow-card p-6 transform hover:shadow-card-hover transition-all-300">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-neutral-700">输入 (数据库字段)</h3>
+          <button id="clear-input-btn" class="text-neutral-400 hover:text-neutral-600 transition-colors">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+        <p class="text-sm text-neutral-500 mb-3">每行一个字段名</p>
+        <div class="relative">
+          <textarea id="input-field" class="w-full h-64 p-4 border border-neutral-200 rounded-lg focus:outline-none focus:textarea-focus resize-none transition-all-300" placeholder="例如:&#10;role_code&#10;user_name&#10;create_time"></textarea>
+          <div class="absolute bottom-4 right-4 text-xs text-neutral-400">
+            <span id="input-count">0</span> 个字符
+          </div>
+        </div>
+      </div>
+
+      <!-- 输出区域 -->
+      <div class="bg-white rounded-xl shadow-card p-6 transform hover:shadow-card-hover transition-all-300">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-neutral-700">输出 (JavaBean格式)</h3>
+          <button id="copy-output-btn" class="text-neutral-400 hover:text-neutral-600 transition-colors">
+            <i class="fa-solid fa-copy"></i>
+          </button>
+        </div>
+        <div class="flex items-center space-x-2 mb-3">
+          <input type="checkbox" id="capitalize-first" class="w-4 h-4 accent-primary">
+          <label for="capitalize-first" class="text-sm text-neutral-600">首字母大写</label>
+        </div>
+        <div class="relative">
+          <textarea id="output-field" class="w-full h-64 p-4 border border-neutral-200 rounded-lg focus:outline-none focus:textarea-focus resize-none transition-all-300 bg-neutral-50" placeholder="转换结果将显示在这里..." readonly></textarea>
+          <div class="absolute bottom-4 right-4 text-xs text-neutral-400">
+            <span id="output-count">0</span> 个字符
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Java Bean → 数据库命名区域 -->
+    <div id="bean-to-snake-converter" class="hidden grid md:grid-cols-2 gap-6">
+      <!-- 输入区域 -->
+      <div class="bg-white rounded-xl shadow-card p-6 transform hover:shadow-card-hover transition-all-300">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-neutral-700">输入 (Java Bean名称)</h3>
+          <button id="clear-bean-input-btn" class="text-neutral-400 hover:text-neutral-600 transition-colors">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+        <p class="text-sm text-neutral-500 mb-3">每行一个Java Bean名称</p>
+        <div class="relative">
+          <textarea id="bean-input-names" class="w-full h-64 p-4 border border-neutral-200 rounded-lg focus:outline-none focus:textarea-focus resize-none transition-all-300" placeholder="例如:&#10;userName&#10;createTime&#10;isActive"></textarea>
+          <div class="absolute bottom-4 right-4 text-xs text-neutral-400">
+            <span id="bean-input-counter">0</span> 个名称
+          </div>
+        </div>
+      </div>
+
+      <!-- 输出区域 -->
+      <div class="bg-white rounded-xl shadow-card p-6 transform hover:shadow-card-hover transition-all-300">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-neutral-700">输出 (数据库命名)</h3>
+          <button id="copy-bean-output-btn" class="text-neutral-400 hover:text-neutral-600 transition-colors">
+            <i class="fa-solid fa-copy"></i>
+          </button>
+        </div>
+        <div class="relative">
+          <textarea id="bean-output-names" class="w-full h-64 p-4 border border-neutral-200 rounded-lg focus:outline-none focus:textarea-focus resize-none transition-all-300 bg-neutral-50" placeholder="转换结果将显示在这里..." readonly></textarea>
+          <div class="absolute bottom-4 right-4 text-xs text-neutral-400">
+            <span id="bean-output-counter">0</span> 个名称
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-center gap-4 mt-6">
+        <button 
+          id="convert-bean-btn" 
+          class="px-6 py-3 bg-primary text-white rounded-lg shadow btn-hover flex items-center space-x-2">
+          <i class="fa fa-exchange"></i>
+          <span>立即转换</span>
+        </button>
+        <button 
+          id="clear-bean-all-btn" 
+          class="px-6 py-3 bg-neutral-200 text-neutral-700 rounded-lg shadow btn-hover flex items-center space-x-2">
+          <i class="fa fa-eraser"></i>
+          <span>清空</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 字段类型转换区域 (默认隐藏) -->
+    <div id="type-converter" class="hidden">
+      <div class="grid md:grid-cols-3 gap-6">
+        <!-- 输入区域 -->
+        <div class="bg-white rounded-xl shadow-card p-6 transform hover:shadow-card-hover transition-all-300">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-neutral-700">输入 (数据库字段类型)</h3>
+            <button id="clear-type-input-btn" class="text-neutral-400 hover:text-neutral-600 transition-colors">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+          <p class="text-sm text-neutral-500 mb-3">每行一个字段类型</p>
+          <div class="relative">
+            <textarea id="type-input-field" class="w-full h-64 p-4 border border-neutral-200 rounded-lg focus:outline-none focus:textarea-focus resize-none transition-all-300" placeholder="例如:&#10;varchar(40)&#10;int(11)&#10;datetime"></textarea>
+            <div class="absolute bottom-4 right-4 text-xs text-neutral-400">
+              <span id="type-input-count">0</span> 个字符
+            </div>
+          </div>
+        </div>
+
+        <!-- 类型输出区域 -->
+        <div class="bg-white rounded-xl shadow-card p-6 transform hover:shadow-card-hover transition-all-300">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-neutral-700">输出 (Java数据类型)</h3>
+            <button id="copy-type-btn" class="text-neutral-400 hover:text-neutral-600 transition-colors">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+          </div>
+          <div class="relative">
+            <textarea id="type-output-field" class="w-full h-64 p-4 border border-neutral-200 rounded-lg focus:outline-none focus:textarea-focus resize-none transition-all-300 bg-neutral-50" placeholder="数据类型将显示在这里..." readonly></textarea>
+            <div class="absolute bottom-4 right-4 text-xs text-neutral-400">
+              <span id="type-output-count">0</span> 个字符
+            </div>
+          </div>
+        </div>
+
+        <!-- 长度输出区域 -->
+        <div class="bg-white rounded-xl shadow-card p-6 transform hover:shadow-card-hover transition-all-300">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-neutral-700">输出 (字段长度)</h3>
+            <button id="copy-length-btn" class="text-neutral-400 hover:text-neutral-600 transition-colors">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+          </div>
+          <div class="relative">
+            <textarea id="length-output-field" class="w-full h-64 p-4 border border-neutral-200 rounded-lg focus:outline-none focus:textarea-focus resize-none transition-all-300 bg-neutral-50" placeholder="字段长度将显示在这里..." readonly></textarea>
+            <div class="absolute bottom-4 right-4 text-xs text-neutral-400">
+              <span id="length-output-count">0</span> 个字符
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SQL DDL生成区域 (默认隐藏) -->
+    <div id="ddl-converter" class="hidden">
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- 输入区域 -->
+        <div class="bg-white rounded-xl shadow-card p-6 transform hover:shadow-card-hover transition-all-300">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-neutral-700">输入 (生成DDL信息)</h3>
+            <button id="clear-ddl-input-btn" class="text-neutral-400 hover:text-neutral-600 transition-colors">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+          <p class="text-sm text-neutral-500 mb-3">按指定格式输入信息</p>
+          <div class="relative">
+            <textarea id="ddl-input-field" class="w-full h-64 p-4 border border-neutral-200 rounded-lg focus:outline-none focus:textarea-focus resize-none transition-all-300" placeholder="表名描述\n表名\n字段、序号、类型、必输、自增、键、默认、额外的、空、注释"></textarea>
+            <div class="absolute bottom-4 right-4 text-xs text-neutral-400">
+              <span id="ddl-input-count">0</span> 个字符
+            </div>
+          </div>
+        </div>
+
+        <!-- 输出区域 -->
+        <div class="bg-white rounded-xl shadow-card p-6 transform hover:shadow-card-hover transition-all-300">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-neutral-700">输出 (SQL DDL语句)</h3>
+            <button id="copy-ddl-btn" class="text-neutral-400 hover:text-neutral-600 transition-colors">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+          </div>
+          <div class="relative">
+            <textarea id="ddl-output-field" class="w-full h-64 p-4 border border-neutral-200 rounded-lg focus:outline-none focus:textarea-focus resize-none transition-all-300 bg-neutral-50" placeholder="生成的DDL语句将显示在这里..." readonly></textarea>
+            <div class="absolute bottom-4 right-4 text-xs text-neutral-400">
+              <span id="ddl-output-count">0</span> 个字符
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 示例区域 -->
+    <div class="mt-10 bg-white rounded-xl shadow-card p-6 transform hover:shadow-card-hover transition-all-300">
+      <h3 class="text-lg font-semibold text-neutral-700 mb-4">转换示例</h3>
+      
+      <!-- 字段名转换示例 -->
+      <div id="name-examples" class="grid md:grid-cols-2 gap-4 mb-6">
+        <div class="bg-neutral-50 p-4 rounded-lg">
+          <h4 class="font-medium text-neutral-700 mb-2">字段名转换 - 未勾选"首字母大写"</h4>
+          <div class="grid grid-cols-2 gap-2 text-sm">
+            <div class="text-neutral-500">数据库字段</div>
+            <div class="text-primary">JavaBean格式</div>
+            <div class="text-neutral-500">user_id</div>
+            <div class="text-primary">userId</div>
+            <div class="text-neutral-500">create_time</div>
+            <div class="text-primary">createTime</div>
+            <div class="text-neutral-500">is_deleted</div>
+            <div class="text-primary">isDeleted</div>
+            <div class="text-neutral-500">user_name</div>
+            <div class="text-primary">userName</div>
+          </div>
+        </div>
+        <div class="bg-neutral-50 p-4 rounded-lg">
+          <h4 class="font-medium text-neutral-700 mb-2">字段名转换 - 勾选"首字母大写"</h4>
+          <div class="grid grid-cols-2 gap-2 text-sm">
+            <div class="text-neutral-500">数据库字段</div>
+            <div class="text-primary">JavaBean格式</div>
+            <div class="text-neutral-500">user_id</div>
+            <div class="text-primary">UserId</div>
+            <div class="text-neutral-500">create_time</div>
+            <div class="text-primary">CreateTime</div>
+            <div class="text-neutral-500">is_deleted</div>
+            <div class="text-primary">IsDeleted</div>
+            <div class="text-neutral-500">user_name</div>
+            <div class="text-primary">UserName</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Java Bean → 数据库命名示例 -->
+      <div id="bean-to-snake-examples" class="hidden">
+        <div class="bg-neutral-50 p-4 rounded-lg">
+          <h4 class="font-medium text-neutral-700 mb-2">Java Bean → 数据库命名示例</h4>
+          <div class="grid grid-cols-2 gap-2 text-sm">
+            <div class="text-neutral-500">Java Bean</div>
+            <div class="text-primary">数据库命名</div>
+            <div class="text-neutral-500">userName</div>
+            <div class="text-primary">user_name</div>
+            <div class="text-neutral-500">createTime</div>
+            <div class="text-primary">create_time</div>
+            <div class="text-neutral-500">isActive</div>
+            <div class="text-primary">is_active</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 字段类型转换示例 -->
+      <div id="type-examples" class="hidden">
+        <div class="bg-neutral-50 p-4 rounded-lg">
+          <h4 class="font-medium text-neutral-700 mb-2">字段类型转换示例</h4>
+          <div class="grid grid-cols-3 gap-2 text-sm">
+            <div class="text-neutral-500">MySQL类型</div>
+            <div class="text-primary">Java数据类型</div>
+            <div class="text-secondary">字段长度</div>
+            <div class="text-neutral-500">varchar(40)</div>
+            <div class="text-primary">String</div>
+            <div class="text-secondary">40</div>
+            <div class="text-neutral-500">int</div>
+            <div class="text-primary">Integer</div>
+            <div class="text-secondary">11</div>
+            <div class="text-neutral-500">datetime</div>
+            <div class="text-primary">Date</div>
+            <div class="text-secondary">19</div>
+            <div class="text-neutral-500">decimal(10,2)</div>
+            <div class="text-primary">BigDecimal</div>
+            <div class="text-secondary">10</div>
+            <div class="text-neutral-500">tinyint(1)</div>
+            <div class="text-primary">Boolean</div>
+            <div class="text-secondary">1</div>
+            <div class="text-neutral-500">bigint</div>
+            <div class="text-primary">Long</div>
+            <div class="text-secondary">20</div>
+            <div class="text-neutral-500">timestamp</div>
+            <div class="text-primary">Date</div>
+            <div class="text-secondary">19</div>
+            <div class="text-neutral-500">text</div>
+            <div class="text-primary">String</div>
+            <div class="text-secondary">65535</div>
+            <div class="text-neutral-500">decimal(25,8)</div>
+            <div class="text-primary">BigDecimal</div>
+            <div class="text-secondary">25</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="bg-white border-t border-neutral-200 py-6 mt-10">
+    <div class="container mx-auto px-4">
+      <div class="flex flex-col md:flex-row justify-between items-center">
+        <div class="text-neutral-500 text-sm mb-4 md:mb-0">
+          &copy; 2025 Kezry
+        </div>
+        <div class="flex space-x-4">
+          <a href="http://github.com/kezry" class="text-neutral-400 hover:text-primary transition-colors">
+            <i class="fa-brands fa-github"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 成功提示 (默认隐藏) -->
+  <div id="success-toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center space-x-2 z-50">
+    <i class="fa-solid fa-check-circle"></i>
+    <span>复制成功!</span>
+  </div>
+
+  <script>
+    // DOM元素
+    const inputField = document.getElementById('input-field');
+    const outputField = document.getElementById('output-field');
+    const capitalizeFirst = document.getElementById('capitalize-first');
+    const inputCount = document.getElementById('input-count');
+    const outputCount = document.getElementById('output-count');
+    const clearInputBtn = document.getElementById('clear-input-btn');
+    const copyOutputBtn = document.getElementById('copy-output-btn');
+    const copyAllBtn = document.getElementById('copy-all-btn');
+    const copyAllMobileBtn = document.getElementById('copy-all-mobile-btn');
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const successToast = document.getElementById('success-toast');
+    const themeToggle = document.getElementById('theme-toggle');
+    
+    // 字段类型转换相关元素
+    const nameTab = document.getElementById('name-tab');
+    const beanToSnakeTab = document.getElementById('bean-to-snake-tab');
+    const typeTab = document.getElementById('type-tab');
+    const ddlTab = document.getElementById('ddl-tab');
+    const nameConverter = document.getElementById('name-converter');
+    const beanToSnakeConverter = document.getElementById('bean-to-snake-converter');
+    const typeConverter = document.getElementById('type-converter');
+    const ddlConverter = document.getElementById('ddl-converter');
+    const nameExamples = document.getElementById('name-examples');
+    const beanToSnakeExamples = document.getElementById('bean-to-snake-examples');
+    const typeExamples = document.getElementById('type-examples');
+    const typeInputField = document.getElementById('type-input-field');
+    const typeOutputField = document.getElementById('type-output-field');
+    const lengthOutputField = document.getElementById('length-output-field');
+    const typeInputCount = document.getElementById('type-input-count');
+    const typeOutputCount = document.getElementById('type-output-count');
+    const lengthOutputCount = document.getElementById('length-output-count');
+    const clearTypeInputBtn = document.getElementById('clear-type-input-btn');
+    const copyTypeBtn = document.getElementById('copy-type-btn');
+    const copyLengthBtn = document.getElementById('copy-length-btn');
+    
+    // SQL DDL生成相关元素
+    const ddlInputField = document.getElementById('ddl-input-field');
+    const ddlOutputField = document.getElementById('ddl-output-field');
+    const ddlInputCount = document.getElementById('ddl-input-count');
+    const ddlOutputCount = document.getElementById('ddl-output-count');
+    const clearDdlInputBtn = document.getElementById('clear-ddl-input-btn');
+    const copyDdlBtn = document.getElementById('copy-ddl-btn');
+    
+    // Java Bean → 数据库命名相关元素
+    const beanInputNames = document.getElementById('bean-input-names');
+    const beanOutputNames = document.getElementById('bean-output-names');
+    const convertBeanBtn = document.getElementById('convert-bean-btn');
+    const clearBeanInputBtn = document.getElementById('clear-bean-input-btn');
+    const copyBeanOutputBtn = document.getElementById('copy-bean-output-btn');
+    const beanInputCounter = document.getElementById('bean-input-counter');
+    const beanOutputCounter = document.getElementById('bean-output-counter');
+    const clearBeanAllBtn = document.getElementById('clear-bean-all-btn');
+
+    // 选项卡切换
+    nameTab.addEventListener('click', () => {
+      nameTab.classList.add('tab-active');
+      beanToSnakeTab.classList.remove('tab-active');
+      typeTab.classList.remove('tab-active');
+      ddlTab.classList.remove('tab-active');
+      nameConverter.classList.remove('hidden');
+      beanToSnakeConverter.classList.add('hidden');
+      typeConverter.classList.add('hidden');
+      ddlConverter.classList.add('hidden');
+      nameExamples.classList.remove('hidden');
+      beanToSnakeExamples.classList.add('hidden');
+      typeExamples.classList.add('hidden');
+    });
+    
+    beanToSnakeTab.addEventListener('click', () => {
+      nameTab.classList.remove('tab-active');
+      beanToSnakeTab.classList.add('tab-active');
+      typeTab.classList.remove('tab-active');
+      ddlTab.classList.remove('tab-active');
+      nameConverter.classList.add('hidden');
+      beanToSnakeConverter.classList.remove('hidden');
+      typeConverter.classList.add('hidden');
+      ddlConverter.classList.add('hidden');
+      nameExamples.classList.add('hidden');
+      beanToSnakeExamples.classList.remove('hidden');
+      typeExamples.classList.add('hidden');
+      convertBeanNames(); // 切换到该区域时立即转换
+    });
+    
+    typeTab.addEventListener('click', () => {
+      nameTab.classList.remove('tab-active');
+      beanToSnakeTab.classList.remove('tab-active');
+      typeTab.classList.add('tab-active');
+      ddlTab.classList.remove('tab-active');
+      nameConverter.classList.add('hidden');
+      beanToSnakeConverter.classList.add('hidden');
+      typeConverter.classList.remove('hidden');
+      ddlConverter.classList.add('hidden');
+      nameExamples.classList.add('hidden');
+      beanToSnakeExamples.classList.add('hidden');
+      typeExamples.classList.remove('hidden');
+      convertFieldTypes(); // 切换到类型转换时立即转换
+    });
+    
+    ddlTab.addEventListener('click', () => {
+      nameTab.classList.remove('tab-active');
+      beanToSnakeTab.classList.remove('tab-active');
+      typeTab.classList.remove('tab-active');
+      ddlTab.classList.add('tab-active');
+      nameConverter.classList.add('hidden');
+      beanToSnakeConverter.classList.add('hidden');
+      typeConverter.classList.add('hidden');
+      ddlConverter.classList.remove('hidden');
+      nameExamples.classList.add('hidden');
+      beanToSnakeExamples.classList.add('hidden');
+      typeExamples.classList.add('hidden');
+      generateDDL(); // 切换到DDL生成时立即转换
+    });
+    
+    // 监听输入变化
+    inputField.addEventListener('input', convertFields);
+    capitalizeFirst.addEventListener('change', convertFields);
+    typeInputField.addEventListener('input', convertFieldTypes);
+    ddlInputField.addEventListener('input', generateDDL);
+    beanInputNames.addEventListener('input', updateBeanCounters);
+    convertBeanBtn.addEventListener('click', convertBeanNames);
+
+    // 清除输入
+    clearInputBtn.addEventListener('click', () => {
+      inputField.value = '';
+      convertFields();
+      inputField.focus();
+    });
+    
+    clearTypeInputBtn.addEventListener('click', () => {
+      typeInputField.value = '';
+      convertFieldTypes();
+      typeInputField.focus();
+    });
+    
+    clearDdlInputBtn.addEventListener('click', () => {
+      ddlInputField.value = '';
+      generateDDL();
+      ddlInputField.focus();
+    });
+
+    clearBeanInputBtn.addEventListener('click', () => {
+      beanInputNames.value = '';
+      beanOutputNames.value = '';
+      updateBeanCounters();
+      beanInputNames.focus();
+    });
+
+    clearBeanAllBtn.addEventListener('click', () => {
+      beanInputNames.value = '';
+      beanOutputNames.value = '';
+      updateBeanCounters();
+      beanInputNames.focus();
+    });
+    
+    // 复制输出
+    copyOutputBtn.addEventListener('click', copyToClipboard);
+    copyAllBtn.addEventListener('click', copyToClipboard);
+    copyAllMobileBtn.addEventListener('click', copyToClipboard);
+    copyTypeBtn.addEventListener('click', () => {
+      copyTextToClipboard(typeOutputField.value);
+    });
+    copyLengthBtn.addEventListener('click', () => {
+      copyTextToClipboard(lengthOutputField.value);
+    });
+    copyDdlBtn.addEventListener('click', () => {
+      copyTextToClipboard(ddlOutputField.value);
+    });
+    copyBeanOutputBtn.addEventListener('click', () => {
+      copyTextToClipboard(beanOutputNames.value);
+    });
+    
+    // 移动端菜单切换
+    mobileMenuBtn.addEventListener('click', () => {
+      if (mobileMenu.classList.contains('-translate-y-full')) {
+        mobileMenu.classList.remove('-translate-y-full');
+        mobileMenu.classList.add('translate-y-0');
+        mobileMenuBtn.innerHTML = '<i class="fa-solid fa-xmark text-neutral-500"></i>';
+      } else {
+        mobileMenu.classList.add('-translate-y-full');
+        mobileMenu.classList.remove('translate-y-0');
+        mobileMenuBtn.innerHTML = '<i class="fa-solid fa-bars text-neutral-500"></i>';
+      }
+    });
+    
+    // 主题切换
+    themeToggle.addEventListener('click', () => {
+      const icon = themeToggle.querySelector('i');
+      if (icon.classList.contains('fa-moon')) {
+        icon.classList.remove('fa-moon');
+        icon.classList.add('fa-sun');
+        document.documentElement.classList.add('dark');
+      } else {
+        icon.classList.remove('fa-sun');
+        icon.classList.add('fa-moon');
+        document.documentElement.classList.remove('dark');
+      }
+    });
+    
+    // 显示成功提示
+    function showSuccessToast() {
+      successToast.classList.remove('translate-y-20', 'opacity-0');
+      successToast.classList.add('translate-y-0', 'opacity-100');
+      
+      setTimeout(() => {
+        successToast.classList.add('translate-y-20', 'opacity-0');
+        successToast.classList.remove('translate-y-0', 'opacity-100');
+      }, 2000);
+    }
+    
+    // 复制到剪贴板
+    function copyToClipboard() {
+      if (outputField.value.trim() === '') return;
+      
+      outputField.select();
+      document.execCommand('copy');
+      showSuccessToast();
+    }
+    
+    function copyTextToClipboard(text) {
+      if (text.trim() === '') return;
+      
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      showSuccessToast();
+    }
+    
+    // 转换字段名
+    function convertFields() {
+      // 更新字符计数
+      inputCount.textContent = inputField.value.length;
+      
+      // 如果输入为空，清空输出
+      if (inputField.value.trim() === '') {
+        outputField.value = '';
+        outputCount.textContent = '0';
+        return;
+      }
+      
+      // 处理输入文本，只按换行符分割
+      const fields = inputField.value.split('\n').map(field => field.trim()).filter(field => field);
+      
+      // 转换字段名
+      const convertedFields = fields.map(field => {
+        // 将下划线后的字母转为大写
+        const camelCase = field.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
+        
+        // 如果勾选首字母大写，则将第一个字母也转为大写
+        if (capitalizeFirst.checked) {
+          return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
+        }
+        
+        return camelCase;
+      });
+      
+      // 更新输出
+      outputField.value = convertedFields.join('\n');
+      outputCount.textContent = outputField.value.length;
+    }
+    
+    // 转换字段类型
+    function convertFieldTypes() {
+      // 更新字符计数
+      typeInputCount.textContent = typeInputField.value.length;
+      
+      // 如果输入为空，清空输出
+      if (typeInputField.value.trim() === '') {
+        typeOutputField.value = '';
+        lengthOutputField.value = '';
+        typeOutputCount.textContent = '0';
+        lengthOutputCount.textContent = '0';
+        return;
+      }
+      
+      // 处理输入文本，只按换行符分割
+      const types = typeInputField.value.split('\n').map(type => type.trim()).filter(type => type);
+      
+      // 存储转换后的类型和长度
+      const convertedTypes = [];
+      const lengths = [];
+      
+      // MySQL类型到Java类型的映射和标准长度
+      const typeMap = {
+        // 字符串类型
+        'char': { javaType: 'String', defaultLength: 255 },
+        'varchar': { javaType: 'String', defaultLength: 255 },
+        'tinytext': { javaType: 'String', defaultLength: 255 },
+        'text': { javaType: 'String', defaultLength: 65535 },
+        'mediumtext': { javaType: 'String', defaultLength: 16777215 },
+        'longtext': { javaType: 'String', defaultLength: 4294967295 },
+        'enum': { javaType: 'String', defaultLength: 65535 },
+        'set': { javaType: 'String', defaultLength: 64 },
+        
+        // 数值类型
+        'tinyint': { javaType: 'Byte', defaultLength: 3 },
+        'smallint': { javaType: 'Short', defaultLength: 5 },
+        'mediumint': { javaType: 'Integer', defaultLength: 8 },
+        'int': { javaType: 'Integer', defaultLength: 11 },
+        'integer': { javaType: 'Integer', defaultLength: 11 },
+        'bigint': { javaType: 'Long', defaultLength: 20 },
+        'float': { javaType: 'Float', defaultLength: 12 },
+        'double': { javaType: 'Double', defaultLength: 22 },
+        'decimal': { javaType: 'BigDecimal', defaultLength: '10,2' },
+        'numeric': { javaType: 'BigDecimal', defaultLength: '10,2' },
+        
+        // 日期和时间类型
+        'date': { javaType: 'Date', defaultLength: 10 },
+        'datetime': { javaType: 'Date', defaultLength: 19 },
+        'timestamp': { javaType: 'Date', defaultLength: 19 },
+        'time': { javaType: 'Time', defaultLength: 8 },
+        'year': { javaType: 'Integer', defaultLength: 4 },
+        
+        // 二进制类型
+        'tinyblob': { javaType: 'byte[]', defaultLength: 255 },
+        'blob': { javaType: 'byte[]', defaultLength: 65535 },
+        'mediumblob': { javaType: 'byte[]', defaultLength: 16777215 },
+        'longblob': { javaType: 'byte[]', defaultLength: 4294967295 },
+        'binary': { javaType: 'byte[]', defaultLength: 255 },
+        'varbinary': { javaType: 'byte[]', defaultLength: 255 },
+        
+        // 布尔类型
+        'boolean': { javaType: 'Boolean', defaultLength: 1 },
+        'bool': { javaType: 'Boolean', defaultLength: 1 },
+      };
+      
+      // 处理每个类型
+      types.forEach(type => {
+        // 不区分大小写
+        const lowerCaseType = type.toLowerCase();
+        
+        // 提取类型名称和长度
+        let typeName = lowerCaseType;
+        let length = null;
+        
+        // 检查是否有括号，例如 varchar(255)
+        const bracketIndex = lowerCaseType.indexOf('(');
+        if (bracketIndex !== -1) {
+          typeName = lowerCaseType.substring(0, bracketIndex).trim();
+          
+          // 提取括号内的长度
+          const lengthStr = lowerCaseType.substring(bracketIndex + 1, lowerCaseType.indexOf(')', bracketIndex)).trim();
+          
+          // 特殊处理 decimal(25,8) 这种带逗号的情况
+          if (typeName === 'decimal' || typeName === 'numeric') {
+            // 只取逗号前的数值作为长度
+            length = lengthStr.split(',')[0];
+          } else {
+            // 对于其他类型，只取第一个数字作为长度
+            length = lengthStr.split(',')[0];
+          }
+        }
+        
+        // 查找对应的Java类型和默认长度
+        const typeInfo = typeMap[typeName];
+        
+        // 特殊处理 tinyint(1) 作为布尔类型
+        if (typeName === 'tinyint' && length === '1') {
+          convertedTypes.push('Boolean');
+          lengths.push('1');
+          return;
+        }
+        
+        if (typeInfo) {
+          convertedTypes.push(typeInfo.javaType);
+          // 如果有指定长度，使用指定长度；否则使用默认长度
+          lengths.push(length !== null ? length : typeInfo.defaultLength);
+        } else {
+          // 未知类型
+          convertedTypes.push('Object');
+          lengths.push('-');
+        }
+      });
+      
+      // 更新输出
+      typeOutputField.value = convertedTypes.join('\n');
+      lengthOutputField.value = lengths.join('\n');
+      typeOutputCount.textContent = typeOutputField.value.length;
+      lengthOutputCount.textContent = lengthOutputField.value.length;
+    }
+    
+    // 生成SQL DDL语句
+    function generateDDL() {
+      // 更新字符计数
+      ddlInputCount.textContent = ddlInputField.value.length;
+      
+      // 如果输入为空，清空输出
+      if (ddlInputField.value.trim() === '') {
+        ddlOutputField.value = '';
+        ddlOutputCount.textContent = '0';
+        return;
+      }
+      
+      const lines = ddlInputField.value.split('\n');
+      const tableDescription = lines[0].trim();
+      const tableName = lines[1].split(/\s+/)[0].trim();
+      let columns = [];
+      let primaryKey = '';
+      
+      for (let i = 2; i < lines.length; i++) {
+        if (lines[i].includes('列名')) continue; // 忽略包含"列名"的行
+        const parts = lines[i].split(/\s+/);
+        const columnName = parts[0];
+        const columnType = parts[2];
+        const isRequired = parts[3] === 'TRUE';
+        const isAutoIncrement = parts[4] === 'TRUE';
+        const isPrimaryKey = parts[5] === 'PRI';
+        const defaultValue = parts[6];
+        const extra = parts[7];
+        const comment = parts.slice(9).join(' ');
+        
+        let columnDefinition = `\`${columnName}\` ${columnType}`;
+        
+        if (isRequired) {
+          columnDefinition += ' NOT NULL';
+        } else {
+          columnDefinition += ' DEFAULT NULL';
+        }
+        
+        if (isAutoIncrement) {
+          columnDefinition += ' AUTO_INCREMENT';
+        }
+        
+        if (defaultValue && defaultValue!== 'NULL') {
+          columnDefinition += ` DEFAULT ${defaultValue}`;
+        }
+        
+        if (extra) {
+          columnDefinition += ` ${extra}`;
+        }
+        
+        if (comment) {
+          columnDefinition += ` COMMENT "${comment}"`;
+        }
+        
+        columns.push(columnDefinition);
+        
+        if (isPrimaryKey) {
+          primaryKey = columnName;
+        }
+      }
+      
+      let ddl = `CREATE TABLE \`${tableName}\` (\n`;
+      ddl += columns.map(col => `\t${col},`).join('\n');
+      
+      if (primaryKey) {
+        ddl += `\n\tPRIMARY KEY (\`${primaryKey}\`)`;
+      }
+      
+      ddl += `\n) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='${tableDescription}';`;
+      
+      ddlOutputField.value = ddl;
+      ddlOutputCount.textContent = ddlOutputField.value.length;
+    }
+
+    // 转换Java Bean名称到数据库命名
+    function camelToSnake(text) {
+      if (!text) return '';
+      // 处理首字母大写的情况
+      if (text[0] === text[0].toUpperCase()) {
+        text = text[0].toLowerCase() + text.slice(1);
+      }
+      // 正则表达式：在大写字母前插入下划线并转换为小写
+      return text.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    }
+
+    function convertBeanNames() {
+      const lines = beanInputNames.value.split('\n');
+      const result = [];
+      
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed) {
+          result.push(camelToSnake(trimmed));
+        } else {
+          result.push(''); // 保留空行
+        }
+      }
+      
+      beanOutputNames.value = result.join('\n');
+      updateBeanCounters();
+      
+      // 添加转换动画效果
+      beanOutputNames.classList.add('border-primary');
+      setTimeout(() => {
+        beanOutputNames.classList.remove('border-primary');
+      }, 500);
+    }
+
+    function updateBeanCounters() {
+      const inputLines = beanInputNames.value.split('\n').filter(line => line.trim() !== '').length;
+      const outputLines = beanOutputNames.value.split('\n').filter(line => line.trim() !== '').length;
+      
+      beanInputCounter.textContent = `${inputLines} 个名称`;
+      beanOutputCounter.textContent = `${outputLines} 个名称`;
+    }
+    
+    // 初始转换
+    convertFields();
+    convertFieldTypes();
+    generateDDL();
+    convertBeanNames();
+    
+    // 平滑滚动
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+          behavior: 'smooth'
+        });
+      });
+    });
+  </script>
+</body>
+</html>

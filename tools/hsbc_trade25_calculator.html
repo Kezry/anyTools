@@ -165,29 +165,48 @@
         input:checked + .slider:before {
             transform: translateX(30px);
         }
+
+        /* 移动设备适配 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .calculator {
+                padding: 15px;
+            }
+            .result-item {
+                flex-direction: column;
+                padding-bottom: 8px;
+            }
+            .result-item span:last-child {
+                margin-top: 3px;
+                align-self: flex-end;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="calculator">
         <h2>汇丰Trade25港股成交价计算器</h2>
+        <p style="font-size: 12px; color: #666; margin-top: -10px;">版本: 1.1 | 最后更新: 2025-07-02</p>
         <div class="form-group">
             <label for="price">股票单价 (港币)</label>
             <div class="input-container">
-                <input type="number" id="price" step="0.001" min="0" oninput="validateAndCalculate()">
+                <input type="number" id="price" step="0.001" min="0" oninput="validateAndCalculate()" placeholder="请输入股票单价">
                 <span class="clear-btn" onclick="clearInput('price')">×</span>
             </div>
         </div>
         <div class="form-group">
             <label for="quantity">股票数量</label>
             <div class="input-container">
-                <input type="number" id="quantity" min="0" oninput="validateAndCalculate()">
+                <input type="number" id="quantity" min="0" oninput="validateAndCalculate()" placeholder="请输入股票数量">
                 <span class="clear-btn" onclick="clearInput('quantity')">×</span>
             </div>
         </div>
         <div class="form-group">
             <label for="profitGoal">赚钱目标 (港币)</label>
             <div class="input-container">
-                <input type="number" id="profitGoal" min="0" oninput="clearAndCalculate('profitGoal')">
+                <input type="number" id="profitGoal" min="0" oninput="clearAndCalculate('profitGoal')" placeholder="请输入目标盈利金额">
                 <span id="profitGoalHint" style="display: none; color: green; font-size: 14px; margin-top: 5px;"></span>
                 <span class="clear-btn" onclick="clearInput('profitGoal')">×</span>
             </div>
@@ -195,7 +214,7 @@
         <div class="form-group">
             <label for="sellPrice">卖出价格 (港币)</label>
             <div class="input-container">
-                <input type="number" id="sellPrice" step="0.001" min="0" oninput="clearAndCalculate('sellPrice')">
+                <input type="number" id="sellPrice" step="0.001" min="0" oninput="clearAndCalculate('sellPrice')" placeholder="请输入卖出单价">
                 <span id="sellPriceHint" style="display: none; color: green; font-size: 14px; margin-top: 5px;"></span>
                 <span class="clear-btn" onclick="clearInput('sellPrice')">×</span>
             </div>
@@ -226,6 +245,10 @@
         let calculationResults = null;
         // 颜色模式：true表示标准模式，false表示反转模式
         let colorMode = true;
+        // 页面加载时初始化切换开关状态为colorMode的值
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('colorToggle').checked = colorMode;
+        });
         
         // 防抖函数，用于限制计算频率
         function debounce(func, delay) {
@@ -314,10 +337,40 @@
         }
         
         function calculate() {
-            const price = parseFloat(document.getElementById('price').value);
-            const quantity = parseInt(document.getElementById('quantity').value);
-            const profitGoal = parseFloat(document.getElementById('profitGoal').value);
-            const sellPrice = parseFloat(document.getElementById('sellPrice').value);
+            // 添加输入验证和错误处理
+            try {
+                const price = parseFloat(document.getElementById('price').value);
+                const quantity = parseInt(document.getElementById('quantity').value);
+                const profitGoal = parseFloat(document.getElementById('profitGoal').value);
+                const sellPrice = parseFloat(document.getElementById('sellPrice').value);
+
+                // 验证输入值的有效性
+                if (price <= 0 && !isNaN(price)) {
+                    alert('股票单价必须大于0');
+                    return;
+                }
+                if (quantity <= 0 && !isNaN(quantity)) {
+                    alert('股票数量必须大于0');
+                    return;
+                }
+                if (profitGoal < 0 && !isNaN(profitGoal)) {
+                    alert('赚钱目标不能为负数');
+                    return;
+                }
+                if (sellPrice <= 0 && !isNaN(sellPrice)) {
+                    alert('卖出价格必须大于0');
+                    return;
+                }
+
+            // 定义常量，避免重复计算
+            const STAMP_DUTY_RATE = 0.0013;
+            const TRADING_FEE_RATE = 0.0000565;
+            const TRADING_LEVY_RATE = 0.00000015;
+            const FRC_LEVY_RATE = 0.00000015;
+            const SETTLEMENT_FEE_RATE = 0.00002;
+            const FIXED_CHARGE = 2;
+            // 所有费率之和，用于计算
+            const TOTAL_RATE = STAMP_DUTY_RATE + TRADING_FEE_RATE + TRADING_LEVY_RATE + FRC_LEVY_RATE + SETTLEMENT_FEE_RATE;
 
             if (!price || !quantity) {
                 document.getElementById('result').style.display = 'none';
@@ -327,12 +380,12 @@
             const totalValue = price * quantity;
             
             // 买入税费计算
-            const stampDuty = totalValue * 0.0013;
-            const tradingFee = totalValue * 0.0000565;
-            const tradingLevy = totalValue * 0.00000015;
-            const frcLevy = totalValue * 0.00000015;
-            const settlementFee = totalValue * 0.00002;
-            const charge = 2;
+            const stampDuty = totalValue * STAMP_DUTY_RATE;
+            const tradingFee = totalValue * TRADING_FEE_RATE;
+            const tradingLevy = totalValue * TRADING_LEVY_RATE;
+            const frcLevy = totalValue * FRC_LEVY_RATE;
+            const settlementFee = totalValue * SETTLEMENT_FEE_RATE;
+            const charge = FIXED_CHARGE;
 
             // 总成本
             const totalCost = totalValue + stampDuty + tradingFee + tradingLevy + frcLevy + settlementFee + charge;
@@ -344,7 +397,7 @@
             let sellTradingLevy = 0;
             let sellFrcLevy = 0;
             let sellSettlementFee = 0;
-            let sellCharge = 2;
+            let sellCharge = FIXED_CHARGE;
             let sellTotalCost = 0;
             let requiredSellPrice = 0;
             let profit = 0;
@@ -352,12 +405,12 @@
             // 处理赚钱目标和卖出价格的逻辑
             if (profitGoal && !sellPrice) {
                 // 有赚钱目标但没有卖出价格，计算需要的卖出价格
-                sellTotalValue = (totalCost + profitGoal + sellCharge) / (1 - 0.0013568);
-                sellStampDuty = sellTotalValue * 0.0013;
-                sellTradingFee = sellTotalValue * 0.0000565;
-                sellTradingLevy = sellTotalValue * 0.00000015;
-                sellFrcLevy = sellTotalValue * 0.00000015;
-                sellSettlementFee = sellTotalValue * 0.00002;
+                sellTotalValue = (totalCost + profitGoal + sellCharge) / (1 - TOTAL_RATE);
+                sellStampDuty = sellTotalValue * STAMP_DUTY_RATE;
+                sellTradingFee = sellTotalValue * TRADING_FEE_RATE;
+                sellTradingLevy = sellTotalValue * TRADING_LEVY_RATE;
+                sellFrcLevy = sellTotalValue * FRC_LEVY_RATE;
+                sellSettlementFee = sellTotalValue * SETTLEMENT_FEE_RATE;
                 sellTotalCost = sellTotalValue - sellStampDuty - sellTradingFee - sellTradingLevy - sellFrcLevy - sellSettlementFee - sellCharge;
                 requiredSellPrice = sellTotalValue / quantity;
                 
@@ -372,11 +425,12 @@
             } else if (sellPrice && !profitGoal) {
                 // 有卖出价格但没有赚钱目标，计算预期盈利
                 sellTotalValue = sellPrice * quantity;
-                sellStampDuty = sellTotalValue * 0.0013;
-                sellTradingFee = sellTotalValue * 0.0000565;
-                sellTradingLevy = sellTotalValue * 0.00000015;
-                sellFrcLevy = sellTotalValue * 0.00000015;
-                sellSettlementFee = sellTotalValue * 0.00002;
+                sellStampDuty = sellTotalValue * STAMP_DUTY_RATE;
+                sellTradingFee = sellTotalValue * TRADING_FEE_RATE;
+                sellTradingLevy = sellTotalValue * TRADING_LEVY_RATE;
+                sellFrcLevy = sellTotalValue * FRC_LEVY_RATE;
+                sellSettlementFee = sellTotalValue * SETTLEMENT_FEE_RATE;
+                // 卖出后实际收入 = 卖出总价 - 各项费用
                 sellTotalCost = sellTotalValue - sellStampDuty - sellTradingFee - sellTradingLevy - sellFrcLevy - sellSettlementFee - sellCharge;
                 profit = sellTotalCost - totalCost;
                 
@@ -391,11 +445,11 @@
             } else if (sellPrice && profitGoal) {
                 // 两者都有，计算并显示结果
                 sellTotalValue = sellPrice * quantity;
-                sellStampDuty = sellTotalValue * 0.0013;
-                sellTradingFee = sellTotalValue * 0.0000565;
-                sellTradingLevy = sellTotalValue * 0.00000015;
-                sellFrcLevy = sellTotalValue * 0.00000015;
-                sellSettlementFee = sellTotalValue * 0.00002;
+                sellStampDuty = sellTotalValue * STAMP_DUTY_RATE;
+                sellTradingFee = sellTotalValue * TRADING_FEE_RATE;
+                sellTradingLevy = sellTotalValue * TRADING_LEVY_RATE;
+                sellFrcLevy = sellTotalValue * FRC_LEVY_RATE;
+                sellSettlementFee = sellTotalValue * SETTLEMENT_FEE_RATE;
                 sellTotalCost = sellTotalValue - sellStampDuty - sellTradingFee - sellTradingLevy - sellFrcLevy - sellSettlementFee - sellCharge;
                 profit = sellTotalCost - totalCost;
                 
@@ -417,11 +471,32 @@
                 requiredSellPrice,
                 sellPrice,
                 profit,
-                colorMode
+                colorMode,
+                // 添加其他计算结果，以便在displayResults中直接使用
+                totalValue,
+                stampDuty,
+                tradingFee,
+                tradingLevy,
+                frcLevy,
+                settlementFee,
+                charge,
+                sellTotalValue,
+                sellStampDuty,
+                sellTradingFee,
+                sellTradingLevy,
+                sellFrcLevy,
+                sellSettlementFee,
+                sellCharge,
+                sellTotalCost
             };
 
             // 显示结果
             displayResults();
+
+            } catch (error) {
+                console.error('计算出错:', error);
+                alert('计算过程中出现错误，请检查输入数据的有效性。');
+            }
         }
         
         // 显示计算结果
@@ -438,35 +513,35 @@
                     <h3>买入成本计算</h3>
                     <div class="result-item">
                         <span>交易金额：</span>
-                        <span>HK$ ${(parseFloat(document.getElementById('price').value) * parseInt(document.getElementById('quantity').value)).toFixed(3)}</span>
+                        <span>HK$ ${calculationResults.totalValue.toFixed(3)}</span>
                     </div>
                     <div class="result-item">
                         <span>印花税 (0.13%)：</span>
-                        <span>HK$ ${(parseFloat(document.getElementById('price').value) * parseInt(document.getElementById('quantity').value) * 0.0013).toFixed(3)}</span>
+                        <span>HK$ ${calculationResults.stampDuty.toFixed(3)}</span>
                     </div>
                     <div class="result-item">
                         <span>交易费 (0.00565%)：</span>
-                        <span>HK$ ${(parseFloat(document.getElementById('price').value) * parseInt(document.getElementById('quantity').value) * 0.0000565).toFixed(3)}</span>
+                        <span>HK$ ${calculationResults.tradingFee.toFixed(3)}</span>
                     </div>
                     <div class="result-item">
                         <span>交易征费 (0.00015%)：</span>
-                        <span>HK$ ${(parseFloat(document.getElementById('price').value) * parseInt(document.getElementById('quantity').value) * 0.00000015).toFixed(3)}</span>
+                        <span>HK$ ${calculationResults.tradingLevy.toFixed(3)}</span>
                     </div>
                     <div class="result-item">
                         <span>财汇局交易征费 (0.00015%)：</span>
-                        <span>HK$ ${(parseFloat(document.getElementById('price').value) * parseInt(document.getElementById('quantity').value) * 0.00000015).toFixed(3)}</span>
+                        <span>HK$ ${calculationResults.frcLevy.toFixed(3)}</span>
                     </div>
                     <div class="result-item">
                         <span>结算费 (0.002%)：</span>
-                        <span>HK$ ${(parseFloat(document.getElementById('price').value) * parseInt(document.getElementById('quantity').value) * 0.00002).toFixed(3)}</span>
+                        <span>HK$ ${calculationResults.settlementFee.toFixed(3)}</span>
                     </div>
                     <div class="result-item">
                         <span>手续费 ：</span>
-                        <span>HK$ 2.000</span>
+                        <span>HK$ ${calculationResults.charge.toFixed(3)}</span>
                     </div>
                     <div class="result-item">
                         <span>总成本：</span>
-                        <span>HK$ ${totalCost.toFixed(3)}</span>
+                        <span>HK$ ${calculationResults.totalCost.toFixed(3)}</span>
                     </div>
                     <div class="result-item">
                         <span>每股成本：</span>
@@ -510,48 +585,43 @@
                         <h3>卖出价格计算</h3>
                         <div class="result-item">
                             <span>卖出交易金额：</span>
-                            <span>HK$ ${(sellPrice * parseInt(document.getElementById('quantity').value)).toFixed(3)}</span>
+                            <span>HK$ ${calculationResults.sellTotalValue.toFixed(3)}</span>
                         </div>
                         <div class="result-item">
                             <span>卖出印花税 (0.13%)：</span>
-                            <span>HK$ ${(sellPrice * parseInt(document.getElementById('quantity').value) * 0.0013).toFixed(3)}</span>
+                            <span>HK$ ${calculationResults.sellStampDuty.toFixed(3)}</span>
                         </div>
                         <div class="result-item">
                             <span>卖出交易费 (0.00565%)：</span>
-                            <span>HK$ ${(sellPrice * parseInt(document.getElementById('quantity').value) * 0.0000565).toFixed(3)}</span>
+                            <span>HK$ ${calculationResults.sellTradingFee.toFixed(3)}</span>
                         </div>
                         <div class="result-item">
                             <span>卖出交易征费 (0.00015%)：</span>
-                            <span>HK$ ${(sellPrice * parseInt(document.getElementById('quantity').value) * 0.00000015).toFixed(3)}</span>
+                            <span>HK$ ${calculationResults.sellTradingLevy.toFixed(3)}</span>
                         </div>
                         <div class="result-item">
                             <span>卖出财汇局交易征费 (0.00015%)：</span>
-                            <span>HK$ ${(sellPrice * parseInt(document.getElementById('quantity').value) * 0.00000015).toFixed(3)}</span>
+                            <span>HK$ ${calculationResults.sellFrcLevy.toFixed(3)}</span>
                         </div>
                         <div class="result-item">
                             <span>卖出结算费 (0.002%)：</span>
-                            <span>HK$ ${(sellPrice * parseInt(document.getElementById('quantity').value) * 0.00002).toFixed(3)}</span>
+                            <span>HK$ ${calculationResults.sellSettlementFee.toFixed(3)}</span>
                         </div>
                         <div class="result-item">
                             <span>卖出手续费 ：</span>
-                            <span>HK$ 2.000</span>
+                            <span>HK$ ${calculationResults.sellCharge.toFixed(3)}</span>
                         </div>
                         <div class="result-item">
                             <span>卖出后实际收入：</span>
-                            <span>HK$ ${(sellPrice * parseInt(document.getElementById('quantity').value) - 
-                                        (sellPrice * parseInt(document.getElementById('quantity').value) * 0.0013) -
-                                        (sellPrice * parseInt(document.getElementById('quantity').value) * 0.0000565) -
-                                        (sellPrice * parseInt(document.getElementById('quantity').value) * 0.00000015) -
-                                        (sellPrice * parseInt(document.getElementById('quantity').value) * 0.00000015) -
-                                        (sellPrice * parseInt(document.getElementById('quantity').value) * 0.00002) - 2).toFixed(3)}</span>
+                            <span>HK$ ${calculationResults.sellTotalCost.toFixed(3)}</span>
                         </div>
                         <div class="result-item">
                             <span>盈利：</span>
-                            <span class="${getColorClass(profit, 0, colorMode)}">HK$ ${profit.toFixed(3)}</span>
+                            <span class="${getColorClass(calculationResults.profit, 0, colorMode)}">HK$ ${calculationResults.profit.toFixed(3)}</span>
                         </div>
                         <div class="result-item">
                             <span>每股盈利：</span>
-                            <span class="${getColorClass(profit, 0, colorMode)}">HK$ ${(profit/parseInt(document.getElementById('quantity').value)).toFixed(3)}</span>
+                            <span class="${getColorClass(calculationResults.profit, 0, colorMode)}">HK$ ${(calculationResults.profit/parseInt(document.getElementById('quantity').value)).toFixed(3)}</span>
                         </div>
                     </div>
                 `;
@@ -597,19 +667,22 @@
         
         // 更新颜色显示
         function updateColorDisplay() {
-            const colorMode = document.getElementById('colorToggle').checked;
+            // 将全局变量colorMode更新为当前开关状态
+            colorMode = document.getElementById('colorToggle').checked;
             const colorModeText = document.getElementById('colorModeText');
-            
+
             // 更新模式文本
             colorModeText.textContent = colorMode ? 
                 "标准模式 (盈利/目标单价高于成本显示绿色，低于显示红色)" : 
                 "反转模式 (盈利/目标单价高于成本显示红色，低于显示绿色)";
-            
+
             // 更新卖出价格输入框颜色
             updateSellPriceColor();
-            
+
             // 如果有计算结果，更新结果中的颜色
             if (calculationResults) {
+                // 更新存储的颜色模式
+                calculationResults.colorMode = colorMode;
                 displayResults();
             }
         }
