@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>汇丰Trade25港股成交价计算器 v1.2</title>
+    <title>汇丰Trade25港股成交价计算器 v1.3.3</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
@@ -37,6 +37,7 @@
             padding: 24px;
             border-radius: 8px;
             box-shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+            position: relative;
         }
         .form-group {
             margin-bottom: 24px;
@@ -67,6 +68,8 @@
             color: var(--text-primary);
             transition: border 0.2s ease, box-shadow 0.2s ease, color 0.3s ease;
             outline: none;
+            max-width: calc(100% - 32px);
+            box-sizing: border-box;
         }
 
         /* 输入框的颜色类 */
@@ -80,6 +83,24 @@
             color: var(--error-color);
             font-weight: 500;
             border-color: var(--error-color);
+        }
+
+        /* 提示信息样式 */
+        #profitGoalHint, #sellPriceHint {
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-style: italic;
+            margin-top: 4px;
+            display: block;
+            transition: color 0.3s ease;
+        }
+
+        #profitGoalHint.green-hint, #sellPriceHint.green-hint {
+            color: var(--secondary-color);
+        }
+
+        #profitGoalHint.red-hint, #sellPriceHint.red-hint {
+            color: var(--error-color);
         }
         input[type="number"]:focus {
             border-color: var(--primary-color);
@@ -102,6 +123,10 @@
             width: 24px;
             height: 24px;
             border-radius: 50%;
+            font-size: 18px;
+        }
+        .clear-btn i {
+            font-size: 18px;
         }
         .clear-btn:hover {
             color: var(--text-primary);
@@ -178,14 +203,24 @@
             color: var(--text-secondary);
             margin-top: 8px;
             box-shadow: none;
-            border: 1px solid var(--divider-color);
+            border: none;
+            padding: 8px 12px;
+            font-size: 12px;
+            text-transform: none;
+            letter-spacing: 0.4px;
+            width: auto;
+            float: right;
+            border-radius: 16px;
+            transition: all 0.2s ease;
         }
         .reset-related-btn:hover {
             background-color: rgba(95, 99, 104, 0.1);
+            color: var(--primary-color);
             box-shadow: none;
         }
         .reset-related-btn:active {
             background-color: rgba(95, 99, 104, 0.2);
+            transform: translateY(1px);
         }
         .result {
             margin-top: 32px;
@@ -244,6 +279,7 @@
         .header {
             margin-bottom: 24px;
             padding-bottom: 16px;
+            padding-right: 80px; /* 为右上角的开关留出空间 */
             border-bottom: 1px solid var(--divider-color);
         }
 
@@ -259,74 +295,103 @@
             color: var(--text-secondary);
             margin: 0;
         }
-        /* Material Design开关样式 */
-        .toggle-container {
+        /* 右上角红绿显示模式切换按钮样式 */
+        .color-mode-switch {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            z-index: 10;
+        }
+
+        .icon-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: transparent;
+            border: none;
             display: flex;
             align-items: center;
-            margin-bottom: 24px;
-            padding: 12px 16px;
-            background-color: var(--primary-light-color);
-            border-radius: 8px;
-        }
-        .toggle-label {
-            margin-right: 16px;
-            color: var(--text-secondary);
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .toggle {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 24px;
-        }
-        .toggle input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider {
-            position: absolute;
+            justify-content: center;
             cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(95, 99, 104, 0.5);
-            transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1);
-            border-radius: 12px;
+            transition: background-color 0.3s ease;
+            position: relative;
+            box-shadow: none;
+            overflow: hidden;
         }
-        .slider:before {
+
+        .icon-button:hover {
+            background-color: rgba(60, 64, 67, 0.08);
+            box-shadow: none;
+        }
+
+        .mode-icon {
             position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1);
-            border-radius: 50%;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            font-size: 24px;
         }
-        input:checked + .slider {
-            background-color: var(--primary-color);
+
+        .standard-mode-icon {
+            color: var(--secondary-color);
+            opacity: 1;
+            transform: translateY(0);
         }
-        input:focus + .slider {
-            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.25);
+
+        .reverse-mode-icon {
+            color: var(--error-color);
+            opacity: 0;
+            transform: translateY(20px);
         }
-        input:checked + .slider:before {
-            transform: translateX(16px);
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+
+        .color-mode-active .standard-mode-icon {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        .color-mode-active .reverse-mode-icon {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .hidden-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .color-mode-switch {
+                top: 16px;
+                right: 16px;
+            }
+
+            .icon-button {
+                width: 36px;
+                height: 36px;
+            }
         }
 
         /* Material Design 移动设备适配 */
-        @media (max-width: 768px) {
+                    /* 两列布局样式 */
+                    .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -12px;
+                    }
+                    .half-width {
+            flex: 0 0 calc(50% - 24px);
+            margin: 0 12px;
+                    }
+
+                    @media (max-width: 768px) {
             body {
                 padding: 16px;
             }
             .calculator {
                 padding: 16px;
                 border-radius: 8px;
+            }
+            .half-width {
+                flex: 0 0 calc(100% - 24px);
             }
             h2 {
                 font-size: 20px;
@@ -415,11 +480,30 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, transform 0.1s;
+            user-select: none;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* 添加一个小提示指示这是可点击的 */
+        .advanced-header::after {
+            content: '点击展开/收起';
+            position: absolute;
+            right: 16px;
+            font-size: 12px;
+            opacity: 0.7;
+            font-weight: normal;
         }
 
         .advanced-header:hover {
             background-color: rgba(66, 133, 244, 0.15);
+        }
+
+        .advanced-header:active {
+            transform: translateY(1px);
+            background-color: rgba(66, 133, 244, 0.25);
         }
 
         .advanced-header span {
@@ -439,6 +523,17 @@
         .advanced-content {
             padding: 0 16px 16px 16px;
             background-color: rgba(66, 133, 244, 0.05);
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out;
+            overflow: hidden;
+            max-height: 1000px; /* 初始展开高度，确保能容纳内容 */
+            opacity: 1;
+        }
+
+        .advanced-content.collapsed {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            opacity: 0;
         }
 
         .advanced-section {
@@ -535,24 +630,39 @@
     <div class="calculator">
         <div class="header">
             <h2>汇丰Trade25港股成交价计算器</h2>
-            <p class="version-info">版本: 1.2 | 最后更新: 2025-07-04 | 新增批量分析和场景分析功能</p>
-        </div>
-        <div class="form-group">
-            <label for="price">股票单价 (港币)</label>
-            <div class="input-container">
-                <input type="number" id="price" step="0.001" min="0" oninput="validateAndCalculate()" placeholder="请输入股票单价">
-                <span class="clear-btn" onclick="clearInput('price')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+            <p class="version-info">版本: 1.3.3 | 最后更新: 2025-07-04 | 优化界面交互，使用图标优化红绿显示模式切换</p>
+            <!-- 红绿显示模式切换按钮 -->
+            <div class="color-mode-switch">
+                <button id="colorModeBtn" class="icon-button" onclick="updateColorDisplay()" title="切换红绿显示模式">
+                    <i class="material-icons mode-icon standard-mode-icon">trending_up</i>
+                    <i class="material-icons mode-icon reverse-mode-icon">trending_up</i>
+                    <input type="checkbox" id="colorToggle" class="hidden-input" onchange="updateColorDisplay()">
+                </button>
             </div>
         </div>
-        <div class="form-group">
-            <label for="quantity">股票数量</label>
-            <div class="input-container">
-                <input type="number" id="quantity" min="0" oninput="validateAndCalculate()" placeholder="请输入股票数量">
-                <span class="clear-btn" onclick="clearInput('quantity')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+        <div class="form-row">
+            <div class="form-group half-width">
+                <label for="price">股票单价 (港币)</label>
+                <div class="input-container">
+                    <input type="number" id="price" step="0.001" min="0" oninput="validateAndCalculate()" placeholder="请输入股票单价">
+                    <span class="clear-btn" onclick="clearInput('price')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+                </div>
+            </div>
+            <div class="form-group half-width">
+                <label for="quantity">股票数量</label>
+                <div class="input-container">
+                    <input type="number" id="quantity" min="0" oninput="validateAndCalculate()" placeholder="请输入股票数量">
+                    <span class="clear-btn" onclick="clearInput('quantity')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+                </div>
             </div>
         </div>
         <div class="form-group">
             <label for="profitGoal">赚钱目标 (港币)</label>
+            <!-- 重置关联按钮 -->
+            <button class="reset-related-btn" onclick="clearRelatedInputs()">
+                <i class="material-icons" style="margin-right: 4px; font-size: 16px; vertical-align: middle;">link_off</i>
+                重置关联
+            </button>
             <div class="input-container">
                 <input type="number" id="profitGoal" min="0" oninput="clearAndCalculate('profitGoal')" placeholder="请输入目标盈利金额">
                 <span id="profitGoalHint" style="display: none; color: var(--secondary-color); font-size: 12px; margin-top: 8px; font-weight: 500;"></span>
@@ -566,29 +676,16 @@
                 <span id="sellPriceHint" style="display: none; color: var(--secondary-color); font-size: 12px; margin-top: 8px; font-weight: 500;"></span>
                 <span class="clear-btn" onclick="clearInput('sellPrice')"><i class="material-icons" style="font-size: 18px;">close</i></span>
             </div>
-            <!-- 重置关联按钮 -->
-            <button class="reset-related-btn" onclick="clearRelatedInputs()">
-                <i class="material-icons" style="margin-right: 8px; font-size: 18px;">refresh</i>
-                重置赚钱目标和卖出价格关联
-            </button>
         </div>
         
-        <!-- 红绿显示切换开关 -->
-        <div class="toggle-container">
-            <label class="toggle-label">红绿显示模式：</label>
-            <label class="toggle">
-                <input type="checkbox" id="colorToggle" onchange="updateColorDisplay()">
-                <span class="slider"></span>
-            </label>
-            <span id="colorModeText" style="margin-left: 10px;">标准模式 (盈利/目标单价高于成本显示绿色，低于显示红色)</span>
-        </div>
+        <!-- 红绿显示切换开关已移到页面右上角 -->
 
         <!-- 添加高级功能区 -->
         <div class="advanced-features">
-            <div class="advanced-header" id="advancedHeader" style="cursor: pointer; user-select: none;">
+            <div class="advanced-header" id="advancedHeader">
                 <span><i class="material-icons" style="vertical-align: middle;">expand_more</i> 高级功能</span>
             </div>
-            <div id="advancedContent" class="advanced-content" style="display: none;">
+            <div id="advancedContent" class="advanced-content">
                 <!-- 批量计算功能 -->
                 <div class="advanced-section">
                     <h3>批量分析</h3>
@@ -652,11 +749,6 @@
             计算
         </button>
 
-        <!-- 备用的高级功能展开按钮 -->
-        <button id="toggleAdvancedBtn" class="reset-related-btn" style="margin-top: 16px;" onclick="toggleAdvancedFeaturesAlt()">
-            <i class="material-icons" style="margin-right: 8px; font-size: 18px; vertical-align: middle;">settings</i>
-            展开高级功能
-        </button>
         <div id="result" class="result" style="display: none;">
             <!-- 结果将在这里显示 -->
         </div>
@@ -694,14 +786,26 @@
                 sellPriceHint: document.getElementById('sellPriceHint'),
                 result: document.getElementById('result'),
                 colorToggle: document.getElementById('colorToggle'),
-                colorModeText: document.getElementById('colorModeText'),
+                colorModeBtn: document.getElementById('colorModeBtn'),
                 advancedHeader: document.getElementById('advancedHeader'),
                 advancedContent: document.getElementById('advancedContent')
             };
 
-            // 初始化开关状态
-            domElements.colorToggle.checked = colorMode;
-            updateColorDisplay();
+            // 初始化颜色模式状态
+            const colorToggle = document.getElementById('colorToggle');
+            if(colorToggle) {
+                colorToggle.checked = colorMode;
+            }
+            const colorModeBtn = document.getElementById('colorModeBtn');
+            if(colorModeBtn) {
+                if(colorMode) {
+                    colorModeBtn.classList.add('color-mode-active');
+                } else {
+                    colorModeBtn.classList.remove('color-mode-active');
+                }
+            }
+            // 初始化输入框颜色
+            updateSellPriceColor();
 
             // 为输入框添加事件监听器，实现实时颜色更新
             domElements.sellPrice.addEventListener('input', function() {
@@ -713,9 +817,11 @@
             });
 
             // 添加高级功能区的展开/收起功能
-            if (domElements.advancedHeader) {
+            if (domElements.advancedHeader && domElements.advancedContent) {
                 domElements.advancedHeader.addEventListener('click', toggleAdvancedFeatures);
-                console.log('高级功能区事件监听已添加');
+                // 默认收起高级功能区
+                domElements.advancedContent.classList.add('collapsed');
+                console.log('高级功能区事件监听已添加，默认已收起');
             } else {
                 console.error('找不到高级功能区标题元素');
             }
@@ -920,6 +1026,12 @@
                 domElements.sellPrice.value = requiredSellPrice.toFixed(3);
                 domElements.sellPriceHint.textContent = "（根据赚钱目标自动计算）";
                 domElements.sellPriceHint.style.display = 'block';
+                document.getElementById('sellPriceHint').className = colorMode ? 
+                    (requiredSellPrice >= costPerShare ? 'green-hint' : 'red-hint') : 
+                    (requiredSellPrice >= costPerShare ? 'red-hint' : 'green-hint');
+
+                // 给卖出价格输入框添加颜色
+                domElements.sellPrice.className = getColorClass(requiredSellPrice, costPerShare, colorMode);
 
                 // 设置卖出价格输入框颜色
                 domElements.sellPrice.className = getColorClass(requiredSellPrice, costPerShare, colorMode);
@@ -964,6 +1076,9 @@
                 // 隐藏所有提示
                 domElements.profitGoalHint.style.display = 'none';
                 domElements.sellPriceHint.style.display = 'none';
+document.getElementById('profitGoalHint').className = colorMode ? 
+    (profit > 0 ? 'green-hint' : 'red-hint') : 
+    (profit > 0 ? 'red-hint' : 'green-hint');
                 
             } else {
                 // 两者都没有，隐藏所有提示
@@ -997,6 +1112,14 @@
                 sellCharge,
                 sellTotalCost
             };
+
+    // 初始化颜色模式开关的提示文本
+    if (domElements.colorToggle) {
+        domElements.colorToggle.parentElement.setAttribute('title', 
+            domElements.colorToggle.checked ? 
+            "反转模式 (盈利/目标单价高于成本显示红色，低于显示绿色)" : 
+            "标准模式 (盈利/目标单价高于成本显示绿色，低于显示红色)");
+    }
 
             // 显示结果
             displayResults();
@@ -1182,12 +1305,25 @@
         // 更新颜色显示
         function updateColorDisplay() {
             // 将全局变量colorMode更新为当前开关状态
-            colorMode = domElements.colorToggle.checked;
+            const colorModeBtn = document.getElementById('colorModeBtn');
+            const colorToggle = document.getElementById('colorToggle');
 
-            // 更新模式文本
-            domElements.colorModeText.textContent = colorMode ? 
-                "标准模式 (盈利/目标单价高于成本显示绿色，低于显示红色)" : 
-                "反转模式 (盈利/目标单价高于成本显示红色，低于显示绿色)";
+            // 切换复选框状态
+            if(colorToggle) {
+                colorToggle.checked = !colorToggle.checked;
+                colorMode = colorToggle.checked;
+            }
+
+            // 更新图标按钮的状态
+            if (colorModeBtn) {
+                if (colorMode) {
+                    colorModeBtn.classList.add('color-mode-active');
+                    colorModeBtn.setAttribute('title', "反转模式 (盈利/目标单价高于成本显示红色，低于显示绿色)");
+                } else {
+                    colorModeBtn.classList.remove('color-mode-active');
+                    colorModeBtn.setAttribute('title', "标准模式 (盈利/目标单价高于成本显示绿色，低于显示红色)");
+                }
+            }
 
             // 更新卖出价格和赚钱目标输入框颜色
             updateSellPriceColor();
@@ -1198,6 +1334,18 @@
                 calculationResults.colorMode = colorMode;
                 displayResults();
             }
+
+            // 如果有批量分析结果，重新运行批量分析以更新颜色
+            const batchResultsTable = document.querySelector('.batch-results-table');
+            if (batchResultsTable) {
+                runBatchAnalysis();
+            }
+
+            // 如果有场景分析结果，重新运行场景分析以更新颜色
+            const scenarioResult = document.querySelector('.result-section h3[id^="scenario"]');
+            if (scenarioResult) {
+                runScenarioAnalysis();
+            }
         }
         
         // 初始化颜色模式文本和其他功能
@@ -1206,17 +1354,7 @@
             updateColorDisplay();
 
             console.log('检查高级功能区元素');
-            // 手动获取高级功能区元素并添加点击事件
-            const advancedHeaderElem = document.getElementById('advancedHeader');
-            if (advancedHeaderElem) {
-                console.log('找到高级功能区标题元素，添加点击事件');
-                advancedHeaderElem.addEventListener('click', function() {
-                    console.log('高级功能区被点击');
-                    toggleAdvancedFeatures();
-                });
-            } else {
-                console.error('未能找到高级功能区标题元素 #advancedHeader');
-            }
+            // 高级功能区的初始化已在前面完成，无需重复
 
             // 为场景分析中的单选按钮添加事件监听
             const scenarioRadios = document.querySelectorAll('input[name="scenario"]');
@@ -1277,70 +1415,26 @@
             }
 
             function handleToggle(content, header) {
-                console.log('当前显示状态:', content.style.display);
-                if (content.style.display === 'none') {
-                    content.style.display = 'block';
+                console.log('当前显示状态:', content.classList.contains('collapsed') ? 'collapsed' : 'expanded');
+
+                if (content.classList.contains('collapsed')) {
+                    // 展开高级功能区
+                    content.classList.remove('collapsed');
                     header.classList.add('active');
                     // 更改图标方向
                     const icon = header.querySelector('.material-icons');
                     if (icon) icon.textContent = 'expand_less';
-                    // 更新按钮文本
-                    updateToggleButtonText(true);
                 } else {
-                    content.style.display = 'none';
+                    // 收起高级功能区
+                    content.classList.add('collapsed');
                     header.classList.remove('active');
                     // 更改图标方向
                     const icon = header.querySelector('.material-icons');
                     if (icon) icon.textContent = 'expand_more';
-                    // 更新按钮文本
-                    updateToggleButtonText(false);
-                }
-            }
-
-            // 更新按钮文本
-            function updateToggleButtonText(isExpanded) {
-                const toggleBtn = document.getElementById('toggleAdvancedBtn');
-                if (toggleBtn) {
-                    toggleBtn.innerHTML = `
-                        <i class="material-icons" style="margin-right: 8px; font-size: 18px; vertical-align: middle;">
-                            ${isExpanded ? 'visibility_off' : 'settings'}
-                        </i>
-                        ${isExpanded ? '收起高级功能' : '展开高级功能'}
-                    `;
                 }
             }
         }
 
-        // 备用的高级功能展开/收起函数
-        function toggleAdvancedFeaturesAlt() {
-            console.log('备用的高级功能展开/收起函数被调用');
-            const advancedContent = document.getElementById('advancedContent');
-            if (!advancedContent) {
-                console.error('找不到高级功能内容区域');
-                return;
-            }
-
-            const advancedHeader = document.getElementById('advancedHeader');
-            const isExpanded = advancedContent.style.display !== 'none';
-
-            if (isExpanded) {
-                advancedContent.style.display = 'none';
-                if (advancedHeader) {
-                    advancedHeader.classList.remove('active');
-                    const icon = advancedHeader.querySelector('.material-icons');
-                    if (icon) icon.textContent = 'expand_more';
-                }
-                updateToggleButtonText(false);
-            } else {
-                advancedContent.style.display = 'block';
-                if (advancedHeader) {
-                    advancedHeader.classList.add('active');
-                    const icon = advancedHeader.querySelector('.material-icons');
-                    if (icon) icon.textContent = 'expand_less';
-                }
-                updateToggleButtonText(true);
-            }
-        }
 
         // 更新场景分析输入框的可用状态
         function updateScenarioInputs() {
@@ -1389,11 +1483,14 @@
             while (currentPrice <= endPrice) {
                 // 模拟卖出价格为当前价格点的情况
                 const simulatedResult = simulateTransaction(price, quantity, currentPrice);
+                // 计算卖出税费总计
+                const sellTaxFees = simulatedResult.sellTotalValue - simulatedResult.sellTotalCost;
                 results.push({
                     sellPrice: currentPrice,
                     profit: simulatedResult.profit,
                     profitPercentage: (simulatedResult.profit / simulatedResult.totalCost) * 100,
                     sellTotal: simulatedResult.sellTotalValue,
+                    sellTaxFees: sellTaxFees,
                     netIncome: simulatedResult.sellTotalCost
                 });
 
@@ -1438,7 +1535,14 @@
                 totalCost,
                 sellTotalValue,
                 sellTotalCost,
-                profit
+                profit,
+                // 添加详细的税费信息用于后续分析
+                sellStampDuty,
+                sellTradingFee,
+                sellTradingLevy,
+                sellFrcLevy,
+                sellSettlementFee,
+                sellCharge
             };
         }
 
@@ -1453,6 +1557,7 @@
                             <tr>
                                 <th>卖出价格 (HK$)</th>
                                 <th>卖出总额 (HK$)</th>
+                                <th>税费总计 (HK$)</th>
                                 <th>实际收入 (HK$)</th>
                                 <th>盈利 (HK$)</th>
                                 <th>收益率 (%)</th>
@@ -1463,11 +1568,13 @@
 
             // 添加每行结果
             results.forEach(result => {
-                const profitClass = result.profit >= 0 ? 'green-value' : 'red-value';
+                // 根据全局颜色模式确定颜色类
+                const profitClass = getColorClass(result.profit, 0, colorMode);
                 resultHTML += `
                     <tr>
                         <td>${result.sellPrice.toFixed(3)}</td>
                         <td>${result.sellTotal.toFixed(2)}</td>
+                        <td>${result.sellTaxFees.toFixed(2)}</td>
                         <td>${result.netIncome.toFixed(2)}</td>
                         <td class="${profitClass}">${result.profit.toFixed(2)}</td>
                         <td class="${profitClass}">${result.profitPercentage.toFixed(2)}%</td>
@@ -1563,7 +1670,7 @@
 
             return `
                 <div class="result-section">
-                    <h3>盈亏平衡点分析</h3>
+                    <h3 id="scenario-breakeven">盈亏平衡点分析</h3>
                     <div class="result-item">
                         <span>买入总成本：</span>
                         <span>HK$ ${totalCost.toFixed(3)}</span>
@@ -1578,7 +1685,7 @@
                     </div>
                     <div class="result-item">
                         <span>相对买入价变化：</span>
-                        <span class="${priceChangePercent >= 0 ? 'red-value' : 'green-value'}">必须${priceChangePercent >= 0 ? '上涨' : '下跌'} ${Math.abs(priceChangePercent).toFixed(2)}%</span>
+                        <span class="${getColorClass(-1 * Math.sign(priceChangePercent), 0, colorMode)}">必须${priceChangePercent >= 0 ? '上涨' : '下跌'} ${Math.abs(priceChangePercent).toFixed(2)}%</span>
                     </div>
                 </div>
             `;
@@ -1607,22 +1714,22 @@
 
             return `
                 <div class="result-section">
-                    <h3>目标收益率分析 (${targetReturnRate}%)</h3>
+                    <h3 id="scenario-targetreturn">目标收益率分析 (${targetReturnRate}%)</h3>
                     <div class="result-item">
                         <span>买入总成本：</span>
                         <span>HK$ ${totalCost.toFixed(3)}</span>
                     </div>
                     <div class="result-item">
                         <span>目标盈利金额：</span>
-                        <span class="green-value">HK$ ${targetProfit.toFixed(3)}</span>
+                        <span class="${getColorClass(1, 0, colorMode)}">HK$ ${targetProfit.toFixed(3)}</span>
                     </div>
                     <div class="result-item">
                         <span>达到目标所需卖出价：</span>
-                        <span class="green-value">HK$ ${targetSellPrice.toFixed(3)}</span>
+                        <span class="${getColorClass(1, 0, colorMode)}">HK$ ${targetSellPrice.toFixed(3)}</span>
                     </div>
                     <div class="result-item">
                         <span>相对买入价变化：</span>
-                        <span class="${priceChangePercent >= 0 ? 'green-value' : 'red-value'}">必须${priceChangePercent >= 0 ? '上涨' : '下跌'} ${Math.abs(priceChangePercent).toFixed(2)}%</span>
+                        <span class="${getColorClass(priceChangePercent, 0, colorMode)}">必须${priceChangePercent >= 0 ? '上涨' : '下跌'} ${Math.abs(priceChangePercent).toFixed(2)}%</span>
                     </div>
                 </div>
             `;
@@ -1651,22 +1758,22 @@
 
             return `
                 <div class="result-section">
-                    <h3>止损点分析 (${stopLossRate}%)</h3>
+                    <h3 id="scenario-stoploss">止损点分析 (${stopLossRate}%)</h3>
                     <div class="result-item">
                         <span>买入总成本：</span>
                         <span>HK$ ${totalCost.toFixed(3)}</span>
                     </div>
                     <div class="result-item">
                         <span>可接受亏损金额：</span>
-                        <span class="red-value">HK$ ${lossAmount.toFixed(3)}</span>
+                        <span class="${getColorClass(-1, 0, colorMode)}">HK$ ${lossAmount.toFixed(3)}</span>
                     </div>
                     <div class="result-item">
                         <span>止损卖出价：</span>
-                        <span class="red-value">HK$ ${stopLossPrice.toFixed(3)}</span>
+                        <span class="${getColorClass(-1, 0, colorMode)}">HK$ ${stopLossPrice.toFixed(3)}</span>
                     </div>
                     <div class="result-item">
                         <span>相对买入价变化：</span>
-                        <span class="${priceChangePercent >= 0 ? 'green-value' : 'red-value'}">股价${priceChangePercent >= 0 ? '上涨' : '下跌'} ${Math.abs(priceChangePercent).toFixed(2)}%</span>
+                        <span class="${getColorClass(priceChangePercent, 0, colorMode)}">股价${priceChangePercent >= 0 ? '上涨' : '下跌'} ${Math.abs(priceChangePercent).toFixed(2)}%</span>
                     </div>
                 </div>
             `;
@@ -1675,36 +1782,7 @@
         window.addEventListener('load', function() {
             console.log('页面完全加载完成，执行最终初始化');
 
-            // 尝试再次绑定高级功能区事件
-            const advancedHeader = document.getElementById('advancedHeader');
-            const advancedContent = document.getElementById('advancedContent');
-            const toggleBtn = document.getElementById('toggleAdvancedBtn');
-
-            if (advancedHeader && advancedContent) {
-                console.log('重新绑定高级功能区事件');
-
-                // 移除可能存在的旧事件监听器
-                const newHeader = advancedHeader.cloneNode(true);
-                advancedHeader.parentNode.replaceChild(newHeader, advancedHeader);
-
-                // 添加新的事件监听器
-                newHeader.addEventListener('click', function() {
-                    console.log('高级功能区被点击(重新绑定)');
-                    if (advancedContent.style.display === 'none') {
-                        advancedContent.style.display = 'block';
-                        newHeader.classList.add('active');
-                        const icon = newHeader.querySelector('.material-icons');
-                        if (icon) icon.textContent = 'expand_less';
-                        if (toggleBtn) toggleBtn.innerHTML = '<i class="material-icons" style="margin-right: 8px; font-size: 18px; vertical-align: middle;">visibility_off</i> 收起高级功能';
-                    } else {
-                        advancedContent.style.display = 'none';
-                        newHeader.classList.remove('active');
-                        const icon = newHeader.querySelector('.material-icons');
-                        if (icon) icon.textContent = 'expand_more';
-                        if (toggleBtn) toggleBtn.innerHTML = '<i class="material-icons" style="margin-right: 8px; font-size: 18px; vertical-align: middle;">settings</i> 展开高级功能';
-                    }
-                });
-            }
+            // 高级功能区的初始化已在前面完成，无需重复
         });
     </script>
 </body>
