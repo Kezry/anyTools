@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>汇丰Trade25港股成交价计算器 v1.2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4285F4; /* Google 蓝色 */
+            --primary-light-color: #E8F0FE;
+            --primary-dark-color: #1967D2;
+            --secondary-color: #34A853; /* Google 绿色 */
+            --error-color: #EA4335; /* Google 红色 */
+            --warning-color: #FBBC04; /* Google 黄色 */
+            --text-primary: #202124;
+            --text-secondary: #5F6368;
+            --surface-color: #FFFFFF;
+            --background-color: #F8F9FA;
+            --divider-color: #DADCE0;
+            --disabled-color: #DADCE0;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 24px;
+            background-color: var(--background-color);
+            -webkit-text-size-adjust: 100%;
+            -webkit-font-smoothing: antialiased;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+        .calculator {
+            background: var(--surface-color);
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+        }
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        .input-container {
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--divider-color);
+            border-radius: 4px;
+            font-size: 16px;
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: transparent;
+            color: var(--text-primary);
+            transition: border 0.2s ease, box-shadow 0.2s ease, color 0.3s ease;
+            outline: none;
+        }
+
+        /* 输入框的颜色类 */
+        input.green-value {
+            color: var(--secondary-color);
+            font-weight: 500;
+            border-color: var(--secondary-color);
+        }
+
+        input.red-value {
+            color: var(--error-color);
+            font-weight: 500;
+            border-color: var(--error-color);
+        }
+        input[type="number"]:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 1px 2px 0 rgba(66, 133, 244, 0.3);
+        }
+        .clear-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-secondary);
+            opacity: 0;
+            transition: opacity 0.3s, color 0.2s;
+            background: none;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+        .clear-btn:hover {
+            color: var(--text-primary);
+            background-color: rgba(95, 99, 104, 0.1);
+        }
+        .clear-btn:hover {
+            color: #333;
+        }
+        input[type="number"]:focus + .clear-btn,
+        input[type="number"]:not(:placeholder-shown) + .clear-btn {
+            opacity: 1;
+        }
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1.25px;
+            width: 100%;
+            box-shadow: 0 1px 2px rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            background-color: var(--primary-dark-color);
+            box-shadow: 0 1px 3px rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+        }
+        button:active {
+            background-color: var(--primary-dark-color);
+            box-shadow: 0 1px 2px rgba(60,64,67,0.3);
+        }
+
+        /* 添加水波纹效果 */
+        button {
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%, -50%);
+            transform-origin: 50% 50%;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(100, 100);
+                opacity: 0;
+            }
+        }
+
+        button:focus:not(:active)::after {
+            animation: ripple 0.8s ease-out;
+        }
+        /* 重置关联按钮样式 */
+        .reset-related-btn {
+            background-color: transparent;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            box-shadow: none;
+            border: 1px solid var(--divider-color);
+        }
+        .reset-related-btn:hover {
+            background-color: rgba(95, 99, 104, 0.1);
+            box-shadow: none;
+        }
+        .reset-related-btn:active {
+            background-color: rgba(95, 99, 104, 0.2);
+        }
+        .result {
+            margin-top: 32px;
+            padding: 24px;
+            background-color: var(--primary-light-color);
+            border-radius: 8px;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result-section {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--divider-color);
+        }
+        .result-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .result-section h3 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+            font-size: 18px;
+            font-weight: 500;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+        .result-item:last-child {
+            border-bottom: none;
+            font-weight: 500;
+            background-color: rgba(66, 133, 244, 0.05);
+            padding: 12px 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+        .green-value {
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+        .red-value {
+            color: var(--error-color);
+            font-weight: 500;
+        }
+
+        /* 头部样式 */
+        .header {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--divider-color);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 24px;
+            font-weight: 500;
+            margin: 0 0 8px 0;
+        }
+
+        .version-info {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        /* Material Design开关样式 */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 12px 16px;
+            background-color: var(--primary-light-color);
+            border-radius: 8px;
+        }
+        .toggle-label {
+            margin-right: 16px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 24px;
+        }
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(95, 99, 104, 0.5);
+            transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            border-radius: 12px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            border-radius: 50%;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+        }
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+        input:focus + .slider {
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.25);
+        }
+        input:checked + .slider:before {
+            transform: translateX(16px);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* Material Design 移动设备适配 */
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+            .calculator {
+                padding: 16px;
+                border-radius: 8px;
+            }
+            h2 {
+                font-size: 20px;
+                margin-top: 8px;
+                margin-bottom: 16px;
+                color: var(--primary-color);
+            }
+            .form-group {
+                margin-bottom: 20px;
+            }
+            label {
+                font-size: 14px;
+            }
+            .result-item {
+                flex-direction: column;
+                padding-bottom: 12px;
+            }
+            .result-item span:last-child {
+                margin-top: 4px;
+                align-self: flex-end;
+                font-weight: 500;
+            }
+            .result-section h3 {
+                font-size: 16px;
+            }
+            .toggle-container {
+                flex-wrap: wrap;
+                padding: 12px;
+            }
+            #colorModeText {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 8px;
+                font-size: 12px;
+                color: var(--text-secondary);
+            }
+            button {
+                padding: 12px 16px;
+                font-size: 14px;
+                border-radius: 4px;
+                letter-spacing: 0.5px;
+            }
+            .result {
+                padding: 16px;
+                font-size: 14px;
+                margin-top: 24px;
+            }
+        }
+
+        /* Material Design 触摸优化 */
+        @media (hover: none) {
+            .clear-btn {
+                opacity: 0.8;
+                background-color: rgba(95, 99, 104, 0.05);
+            }
+            button:active {
+                background-color: var(--primary-dark-color);
+                transform: translateY(1px);
+            }
+        }
+
+        /* 触摸设备优化 */
+        @media (hover: none) {
+            .clear-btn {
+                opacity: 0.7;
+            }
+            button:active {
+                background-color: #b30000;
+            }
+        }
+
+        /* 高级功能区样式 */
+        .advanced-features {
+            margin-top: 24px;
+            border: 1px solid var(--divider-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .advanced-header {
+            padding: 16px;
+            background-color: var(--primary-light-color);
+            color: var(--primary-color);
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.2s;
+        }
+
+        .advanced-header:hover {
+            background-color: rgba(66, 133, 244, 0.15);
+        }
+
+        .advanced-header span {
+            display: flex;
+            align-items: center;
+        }
+
+        .advanced-header .material-icons {
+            margin-right: 8px;
+            transition: transform 0.3s;
+        }
+
+        .advanced-header.active .material-icons {
+            transform: rotate(180deg);
+        }
+
+        .advanced-content {
+            padding: 0 16px 16px 16px;
+            background-color: rgba(66, 133, 244, 0.05);
+        }
+
+        .advanced-section {
+            margin-top: 16px;
+            padding: 16px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.1);
+        }
+
+        .advanced-section h3 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .secondary-btn {
+            background-color: var(--secondary-color);
+            margin-top: 16px;
+        }
+
+        .secondary-btn:hover {
+            background-color: #2d9249;
+        }
+
+        /* 场景分析样式 */
+        .scenario-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .scenario-item {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .scenario-input {
+            flex: 1;
+            min-width: 120px;
+            margin-left: 8px;
+        }
+
+        .scenario-input input {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        /* 批量分析结果表格样式 */
+        .batch-results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font-size: 14px;
+        }
+
+        .batch-results-table th,
+        .batch-results-table td {
+            padding: 8px 12px;
+            text-align: right;
+            border: 1px solid var(--divider-color);
+        }
+
+        .batch-results-table th {
+            background-color: var(--primary-light-color);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .batch-results-table tr:nth-child(even) {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        .batch-results-table tr:hover {
+            background-color: rgba(66, 133, 244, 0.05);
+        }
+
+        /* 数据可视化图表容器 */
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 24px;
+            border: 1px solid var(--divider-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="header">
+            <h2>汇丰Trade25港股成交价计算器</h2>
+            <p class="version-info">版本: 1.2 | 最后更新: 2025-07-04 | 新增批量分析和场景分析功能</p>
+        </div>
+        <div class="form-group">
+            <label for="price">股票单价 (港币)</label>
+            <div class="input-container">
+                <input type="number" id="price" step="0.001" min="0" oninput="validateAndCalculate()" placeholder="请输入股票单价">
+                <span class="clear-btn" onclick="clearInput('price')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="quantity">股票数量</label>
+            <div class="input-container">
+                <input type="number" id="quantity" min="0" oninput="validateAndCalculate()" placeholder="请输入股票数量">
+                <span class="clear-btn" onclick="clearInput('quantity')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="profitGoal">赚钱目标 (港币)</label>
+            <div class="input-container">
+                <input type="number" id="profitGoal" min="0" oninput="clearAndCalculate('profitGoal')" placeholder="请输入目标盈利金额">
+                <span id="profitGoalHint" style="display: none; color: var(--secondary-color); font-size: 12px; margin-top: 8px; font-weight: 500;"></span>
+                <span class="clear-btn" onclick="clearInput('profitGoal')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="sellPrice">卖出价格 (港币)</label>
+            <div class="input-container">
+                <input type="number" id="sellPrice" step="0.001" min="0" oninput="clearAndCalculate('sellPrice')" placeholder="请输入卖出单价">
+                <span id="sellPriceHint" style="display: none; color: var(--secondary-color); font-size: 12px; margin-top: 8px; font-weight: 500;"></span>
+                <span class="clear-btn" onclick="clearInput('sellPrice')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+            </div>
+            <!-- 重置关联按钮 -->
+            <button class="reset-related-btn" onclick="clearRelatedInputs()">
+                <i class="material-icons" style="margin-right: 8px; font-size: 18px;">refresh</i>
+                重置赚钱目标和卖出价格关联
+            </button>
+        </div>
+        
+        <!-- 红绿显示切换开关 -->
+        <div class="toggle-container">
+            <label class="toggle-label">红绿显示模式：</label>
+            <label class="toggle">
+                <input type="checkbox" id="colorToggle" onchange="updateColorDisplay()">
+                <span class="slider"></span>
+            </label>
+            <span id="colorModeText" style="margin-left: 10px;">标准模式 (盈利/目标单价高于成本显示绿色，低于显示红色)</span>
+        </div>
+
+        <!-- 添加高级功能区 -->
+        <div class="advanced-features">
+            <div class="advanced-header" id="advancedHeader" style="cursor: pointer; user-select: none;">
+                <span><i class="material-icons" style="vertical-align: middle;">expand_more</i> 高级功能</span>
+            </div>
+            <div id="advancedContent" class="advanced-content" style="display: none;">
+                <!-- 批量计算功能 -->
+                <div class="advanced-section">
+                    <h3>批量分析</h3>
+                    <div class="form-group">
+                        <label for="batchStartPrice">价格区间起始 (港币)</label>
+                        <div class="input-container">
+                            <input type="number" id="batchStartPrice" step="0.001" min="0" placeholder="起始价格">
+                            <span class="clear-btn" onclick="clearInput('batchStartPrice')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="batchEndPrice">价格区间结束 (港币)</label>
+                        <div class="input-container">
+                            <input type="number" id="batchEndPrice" step="0.001" min="0" placeholder="结束价格">
+                            <span class="clear-btn" onclick="clearInput('batchEndPrice')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="batchStep">价格步长 (港币)</label>
+                        <div class="input-container">
+                            <input type="number" id="batchStep" step="0.001" min="0" value="0.5" placeholder="价格间隔">
+                            <span class="clear-btn" onclick="clearInput('batchStep')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+                        </div>
+                    </div>
+                    <button class="secondary-btn" onclick="runBatchAnalysis()">
+                        <i class="material-icons" style="margin-right: 8px; font-size: 18px; vertical-align: middle;">analytics</i>
+                        运行批量分析
+                    </button>
+                </div>
+
+                <!-- 场景分析功能 -->
+                <div class="advanced-section">
+                    <h3>场景分析</h3>
+                    <div class="scenario-container">
+                        <div class="scenario-item">
+                            <label><input type="radio" name="scenario" value="breakEven" checked> 盈亏平衡点分析</label>
+                        </div>
+                        <div class="scenario-item">
+                            <label><input type="radio" name="scenario" value="targetReturn"> 目标收益率分析</label>
+                            <div class="input-container scenario-input">
+                                <input type="number" id="targetReturnRate" step="0.1" min="0" value="5" placeholder="目标收益率 (%)">
+                            </div>
+                        </div>
+                        <div class="scenario-item">
+                            <label><input type="radio" name="scenario" value="stopLoss"> 止损点分析</label>
+                            <div class="input-container scenario-input">
+                                <input type="number" id="stopLossRate" step="0.1" min="0" value="5" placeholder="止损比例 (%)">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="secondary-btn" onclick="runScenarioAnalysis()">
+                        <i class="material-icons" style="margin-right: 8px; font-size: 18px; vertical-align: middle;">assessment</i>
+                        运行场景分析
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <button onclick="calculate()">
+            <i class="material-icons" style="margin-right: 8px; font-size: 18px; vertical-align: middle;">calculate</i>
+            计算
+        </button>
+
+        <!-- 备用的高级功能展开按钮 -->
+        <button id="toggleAdvancedBtn" class="reset-related-btn" style="margin-top: 16px;" onclick="toggleAdvancedFeaturesAlt()">
+            <i class="material-icons" style="margin-right: 8px; font-size: 18px; vertical-align: middle;">settings</i>
+            展开高级功能
+        </button>
+        <div id="result" class="result" style="display: none;">
+            <!-- 结果将在这里显示 -->
+        </div>
+    </div>
+
+    <script>
+        // 全局变量存储计算结果
+        let calculationResults = null;
+        // 颜色模式：true表示标准模式，false表示反转模式
+        let colorMode = true;
+        // 缓存常用DOM元素
+        let domElements = {};
+        // 定义常量，避免重复计算
+        const STAMP_DUTY_RATE = 0.0013;
+        const TRADING_FEE_RATE = 0.0000565;
+        const TRADING_LEVY_RATE = 0.00000015;
+        const FRC_LEVY_RATE = 0.00000015;
+        const SETTLEMENT_FEE_RATE = 0.00002;
+        const FIXED_CHARGE = 2;
+        // 所有费率之和，用于计算
+        const TOTAL_RATE = STAMP_DUTY_RATE + TRADING_FEE_RATE + TRADING_LEVY_RATE + FRC_LEVY_RATE + SETTLEMENT_FEE_RATE;
+
+        // 初始化DOM元素是否已完成的标志
+        let domInitialized = false;
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 缓存常用DOM元素
+            domElements = {
+                price: document.getElementById('price'),
+                quantity: document.getElementById('quantity'),
+                profitGoal: document.getElementById('profitGoal'),
+                sellPrice: document.getElementById('sellPrice'),
+                profitGoalHint: document.getElementById('profitGoalHint'),
+                sellPriceHint: document.getElementById('sellPriceHint'),
+                result: document.getElementById('result'),
+                colorToggle: document.getElementById('colorToggle'),
+                colorModeText: document.getElementById('colorModeText'),
+                advancedHeader: document.getElementById('advancedHeader'),
+                advancedContent: document.getElementById('advancedContent')
+            };
+
+            // 初始化开关状态
+            domElements.colorToggle.checked = colorMode;
+            updateColorDisplay();
+
+            // 为输入框添加事件监听器，实现实时颜色更新
+            domElements.sellPrice.addEventListener('input', function() {
+                updateInputColors();
+            });
+
+            domElements.profitGoal.addEventListener('input', function() {
+                updateInputColors();
+            });
+
+            // 添加高级功能区的展开/收起功能
+            if (domElements.advancedHeader) {
+                domElements.advancedHeader.addEventListener('click', toggleAdvancedFeatures);
+                console.log('高级功能区事件监听已添加');
+            } else {
+                console.error('找不到高级功能区标题元素');
+            }
+
+            // 为场景分析中的单选按钮添加事件监听
+            const scenarioRadios = document.querySelectorAll('input[name="scenario"]');
+            if (scenarioRadios.length > 0) {
+                scenarioRadios.forEach(radio => {
+                    radio.addEventListener('change', updateScenarioInputs);
+                });
+
+                // 初始化场景输入框状态
+                updateScenarioInputs();
+            }
+
+            // 添加FastClick以消除移动设备上的点击延迟
+            if ('ontouchstart' in window) {
+                // 如果是触摸设备，添加这个class以优化触摸体验
+                document.body.classList.add('touch-device');
+            }
+
+            // 标记DOM初始化已完成
+            domInitialized = true;
+            console.log('DOM初始化完成');
+        });
+
+        // 更新输入框颜色的辅助函数
+        function updateInputColors() {
+            // 只有在已经进行过计算的情况下才更新颜色
+            if (calculationResults) {
+                updateSellPriceColor();
+            }
+        }
+        
+        // 防抖函数，用于限制计算频率
+        function debounce(func, delay) {
+            let timer;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timer);
+                timer = setTimeout(() => func.apply(context, args), delay);
+            }
+        }
+        
+        // 验证输入并计算
+        const validateAndCalculate = debounce(function() {
+            const price = parseFloat(domElements.price.value);
+            const quantity = parseInt(domElements.quantity.value);
+
+            // 只有当价格和数量都有值时才进行计算
+            if (!isNaN(price) && !isNaN(quantity) && price > 0 && quantity > 0) {
+                calculate();
+            } else {
+                domElements.result.style.display = 'none';
+            }
+        }, 300);
+        
+        // 清除输入框内容
+        function clearInput(inputId) {
+            const input = domElements[inputId];
+            if (!input) return;
+
+            input.value = '';
+            input.focus();
+
+            // 重置输入框的颜色类
+            input.className = '';
+
+            // 如果清除的是价格或数量，隐藏结果
+            if (inputId === 'price' || inputId === 'quantity') {
+                domElements.result.style.display = 'none';
+            } else {
+                // 如果清除的是赚钱目标或卖出价格，重新计算
+                validateAndCalculate();
+            }
+
+            // 隐藏相应的提示
+            if (inputId === 'profitGoal') {
+                domElements.profitGoalHint.style.display = 'none';
+            } else if (inputId === 'sellPrice') {
+                domElements.sellPriceHint.style.display = 'none';
+            }
+        }
+        
+        // 清除关联输入框并计算
+        function clearAndCalculate(inputId) {
+            const price = parseFloat(domElements.price.value);
+            const quantity = parseInt(domElements.quantity.value);
+
+            // 只有当价格和数量都有值时才进行处理
+            if (!isNaN(price) && !isNaN(quantity) && price > 0 && quantity > 0) {
+                // 清除另一个关联输入框
+                if (inputId === 'profitGoal') {
+                    domElements.sellPrice.value = '';
+                    domElements.sellPrice.className = ''; // 重置颜色类
+                    domElements.sellPriceHint.style.display = 'none';
+                } else if (inputId === 'sellPrice') {
+                    domElements.profitGoal.value = '';
+                    domElements.profitGoal.className = ''; // 重置颜色类
+                    domElements.profitGoalHint.style.display = 'none';
+                }
+
+                // 计算并更新
+                calculate();
+            } else {
+                domElements.result.style.display = 'none';
+            }
+        }
+        
+        // 清除关联输入框
+        function clearRelatedInputs() {
+            domElements.profitGoal.value = '';
+            domElements.sellPrice.value = '';
+            // 重置输入框的颜色类
+            domElements.profitGoal.className = '';
+            domElements.sellPrice.className = '';
+            domElements.profitGoalHint.style.display = 'none';
+            domElements.sellPriceHint.style.display = 'none';
+
+            // 如果价格和数量都有值，重新计算
+            const price = parseFloat(domElements.price.value);
+            const quantity = parseInt(domElements.quantity.value);
+            if (!isNaN(price) && !isNaN(quantity) && price > 0 && quantity > 0) {
+                calculate();
+            } else {
+                domElements.result.style.display = 'none';
+            }
+        }
+        
+        function calculate() {
+            // 添加输入验证和错误处理
+            try {
+                const price = parseFloat(domElements.price.value);
+                const quantity = parseInt(domElements.quantity.value);
+                const profitGoal = parseFloat(domElements.profitGoal.value);
+                const sellPrice = parseFloat(domElements.sellPrice.value);
+
+                // 验证输入值的有效性
+                if (price <= 0 && !isNaN(price)) {
+                    alert('股票单价必须大于0');
+                    return;
+                }
+                if (quantity <= 0 && !isNaN(quantity)) {
+                    alert('股票数量必须大于0');
+                    return;
+                }
+                if (profitGoal < 0 && !isNaN(profitGoal)) {
+                    alert('赚钱目标不能为负数');
+                    return;
+                }
+                if (sellPrice <= 0 && !isNaN(sellPrice)) {
+                    alert('卖出价格必须大于0');
+                    return;
+                }
+
+                // 使用前面定义的常量，不再重复定义
+
+            if (!price || !quantity) {
+                domElements.result.style.display = 'none';
+                return;
+            }
+
+            const totalValue = price * quantity;
+            
+            // 买入税费计算
+            const stampDuty = totalValue * STAMP_DUTY_RATE;
+            const tradingFee = totalValue * TRADING_FEE_RATE;
+            const tradingLevy = totalValue * TRADING_LEVY_RATE;
+            const frcLevy = totalValue * FRC_LEVY_RATE;
+            const settlementFee = totalValue * SETTLEMENT_FEE_RATE;
+            const charge = FIXED_CHARGE;
+
+            // 总成本
+            const totalCost = totalValue + stampDuty + tradingFee + tradingLevy + frcLevy + settlementFee + charge;
+            const costPerShare = totalCost / quantity;
+
+            let sellTotalValue = 0;
+            let sellStampDuty = 0;
+            let sellTradingFee = 0;
+            let sellTradingLevy = 0;
+            let sellFrcLevy = 0;
+            let sellSettlementFee = 0;
+            let sellCharge = FIXED_CHARGE;
+            let sellTotalCost = 0;
+            let requiredSellPrice = 0;
+            let profit = 0;
+
+            // 处理赚钱目标和卖出价格的逻辑
+            if (profitGoal && !sellPrice) {
+                // 有赚钱目标但没有卖出价格，计算需要的卖出价格
+                sellTotalValue = (totalCost + profitGoal + sellCharge) / (1 - TOTAL_RATE);
+                sellStampDuty = sellTotalValue * STAMP_DUTY_RATE;
+                sellTradingFee = sellTotalValue * TRADING_FEE_RATE;
+                sellTradingLevy = sellTotalValue * TRADING_LEVY_RATE;
+                sellFrcLevy = sellTotalValue * FRC_LEVY_RATE;
+                sellSettlementFee = sellTotalValue * SETTLEMENT_FEE_RATE;
+                sellTotalCost = sellTotalValue - sellStampDuty - sellTradingFee - sellTradingLevy - sellFrcLevy - sellSettlementFee - sellCharge;
+                requiredSellPrice = sellTotalValue / quantity;
+                
+                // 将计算结果反显到卖出价格输入框
+                domElements.sellPrice.value = requiredSellPrice.toFixed(3);
+                domElements.sellPriceHint.textContent = "（根据赚钱目标自动计算）";
+                domElements.sellPriceHint.style.display = 'block';
+
+                // 设置卖出价格输入框颜色
+                domElements.sellPrice.className = getColorClass(requiredSellPrice, costPerShare, colorMode);
+
+                // 隐藏赚钱目标提示
+                domElements.profitGoalHint.style.display = 'none';
+                
+            } else if (sellPrice && !profitGoal) {
+                // 有卖出价格但没有赚钱目标，计算预期盈利
+                sellTotalValue = sellPrice * quantity;
+                sellStampDuty = sellTotalValue * STAMP_DUTY_RATE;
+                sellTradingFee = sellTotalValue * TRADING_FEE_RATE;
+                sellTradingLevy = sellTotalValue * TRADING_LEVY_RATE;
+                sellFrcLevy = sellTotalValue * FRC_LEVY_RATE;
+                sellSettlementFee = sellTotalValue * SETTLEMENT_FEE_RATE;
+                // 卖出后实际收入 = 卖出总价 - 各项费用
+                sellTotalCost = sellTotalValue - sellStampDuty - sellTradingFee - sellTradingLevy - sellFrcLevy - sellSettlementFee - sellCharge;
+                profit = sellTotalCost - totalCost;
+                
+                // 将计算结果反显到赚钱目标输入框
+                domElements.profitGoal.value = profit.toFixed(3);
+                domElements.profitGoalHint.textContent = "（根据卖出价格自动计算）";
+                domElements.profitGoalHint.style.display = 'block';
+
+                // 设置赚钱目标输入框颜色
+                domElements.profitGoal.className = getColorClass(profit, 0, colorMode);
+
+                // 隐藏卖出价格提示
+                domElements.sellPriceHint.style.display = 'none';
+                
+            } else if (sellPrice && profitGoal) {
+                // 两者都有，计算并显示结果
+                sellTotalValue = sellPrice * quantity;
+                sellStampDuty = sellTotalValue * STAMP_DUTY_RATE;
+                sellTradingFee = sellTotalValue * TRADING_FEE_RATE;
+                sellTradingLevy = sellTotalValue * TRADING_LEVY_RATE;
+                sellFrcLevy = sellTotalValue * FRC_LEVY_RATE;
+                sellSettlementFee = sellTotalValue * SETTLEMENT_FEE_RATE;
+                sellTotalCost = sellTotalValue - sellStampDuty - sellTradingFee - sellTradingLevy - sellFrcLevy - sellSettlementFee - sellCharge;
+                profit = sellTotalCost - totalCost;
+                
+                // 隐藏所有提示
+                domElements.profitGoalHint.style.display = 'none';
+                domElements.sellPriceHint.style.display = 'none';
+                
+            } else {
+                // 两者都没有，隐藏所有提示
+                document.getElementById('profitGoalHint').style.display = 'none';
+                document.getElementById('sellPriceHint').style.display = 'none';
+            }
+
+            // 存储计算结果
+            calculationResults = {
+                totalCost,
+                costPerShare,
+                profitGoal,
+                requiredSellPrice,
+                sellPrice,
+                profit,
+                colorMode,
+                // 添加其他计算结果，以便在displayResults中直接使用
+                totalValue,
+                stampDuty,
+                tradingFee,
+                tradingLevy,
+                frcLevy,
+                settlementFee,
+                charge,
+                sellTotalValue,
+                sellStampDuty,
+                sellTradingFee,
+                sellTradingLevy,
+                sellFrcLevy,
+                sellSettlementFee,
+                sellCharge,
+                sellTotalCost
+            };
+
+            // 显示结果
+            displayResults();
+
+            } catch (error) {
+                console.error('计算出错:', error);
+                alert('计算过程中出现错误，请检查输入数据的有效性。');
+            }
+        }
+        
+        // 显示计算结果
+        function displayResults() {
+            if (!calculationResults) return;
+            
+            const { totalCost, costPerShare, profitGoal, requiredSellPrice, sellPrice, profit } = calculationResults;
+            const colorMode = document.getElementById('colorToggle').checked;
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            let resultHTML = `
+                <div class="result-section">
+                    <h3>买入成本计算</h3>
+                    <div class="result-item">
+                        <span>交易金额：</span>
+                        <span>HK$ ${calculationResults.totalValue.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>印花税 (0.13%)：</span>
+                        <span>HK$ ${calculationResults.stampDuty.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>交易费 (0.00565%)：</span>
+                        <span>HK$ ${calculationResults.tradingFee.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>交易征费 (0.00015%)：</span>
+                        <span>HK$ ${calculationResults.tradingLevy.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>财汇局交易征费 (0.00015%)：</span>
+                        <span>HK$ ${calculationResults.frcLevy.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>结算费 (0.002%)：</span>
+                        <span>HK$ ${calculationResults.settlementFee.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>手续费 ：</span>
+                        <span>HK$ ${calculationResults.charge.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>总成本：</span>
+                        <span>HK$ ${calculationResults.totalCost.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>每股成本：</span>
+                        <span>HK$ ${costPerShare.toFixed(3)}</span>
+                    </div>
+                </div>
+            `;
+
+            if (profitGoal) {
+                // 根据颜色模式和比较结果确定颜色类
+                const requiredSellPriceClass = getColorClass(requiredSellPrice || sellPrice, costPerShare, colorMode);
+                
+                resultHTML += `
+                    <div class="result-section">
+                        <h3>赚钱目标计算</h3>
+                        <div class="result-item">
+                            <span>目标盈利：</span>
+                            <span>HK$ ${profitGoal.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>达到赚钱目标所需卖出总价：</span>
+                            <span>HK$ ${((totalCost + profitGoal + 2) / (1 - 0.0013568)).toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>达到赚钱目标所需卖出单价：</span>
+                            <span class="${requiredSellPriceClass}">HK$ ${(requiredSellPrice || sellPrice).toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>与每股成本比较：</span>
+                            <span class="${requiredSellPriceClass}">
+                                ${(requiredSellPrice || sellPrice) >= costPerShare ? '+' : '-'}HK$ ${Math.abs((requiredSellPrice || sellPrice) - costPerShare).toFixed(3)}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (sellPrice) {
+                resultHTML += `
+                    <div class="result-section">
+                        <h3>卖出价格计算</h3>
+                        <div class="result-item">
+                            <span>卖出交易金额：</span>
+                            <span>HK$ ${calculationResults.sellTotalValue.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>卖出印花税 (0.13%)：</span>
+                            <span>HK$ ${calculationResults.sellStampDuty.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>卖出交易费 (0.00565%)：</span>
+                            <span>HK$ ${calculationResults.sellTradingFee.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>卖出交易征费 (0.00015%)：</span>
+                            <span>HK$ ${calculationResults.sellTradingLevy.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>卖出财汇局交易征费 (0.00015%)：</span>
+                            <span>HK$ ${calculationResults.sellFrcLevy.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>卖出结算费 (0.002%)：</span>
+                            <span>HK$ ${calculationResults.sellSettlementFee.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>卖出手续费 ：</span>
+                            <span>HK$ ${calculationResults.sellCharge.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>卖出后实际收入：</span>
+                            <span>HK$ ${calculationResults.sellTotalCost.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>盈利：</span>
+                            <span class="${getColorClass(calculationResults.profit, 0, colorMode)}">HK$ ${calculationResults.profit.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>每股盈利：</span>
+                            <span class="${getColorClass(calculationResults.profit, 0, colorMode)}">HK$ ${(calculationResults.profit/parseInt(document.getElementById('quantity').value)).toFixed(3)}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            resultDiv.innerHTML = resultHTML;
+            
+            // 更新卖出价格输入框颜色
+            updateSellPriceColor();
+        }
+        
+        // 获取颜色类
+        function getColorClass(value, reference, colorMode) {
+            // 确定比较结果
+            const isPositive = value >= reference;
+            
+            // 根据颜色模式和比较结果返回颜色类
+            if (colorMode) {
+                // 标准模式：高于显示绿色，低于显示红色
+                return isPositive ? 'green-value' : 'red-value';
+            } else {
+                // 反转模式：高于显示红色，低于显示绿色
+                return isPositive ? 'red-value' : 'green-value';
+            }
+        }
+        
+        // 更新卖出价格和赚钱目标输入框的颜色
+        function updateSellPriceColor() {
+            if (!calculationResults) return;
+
+            const { requiredSellPrice, costPerShare, sellPrice, profitGoal, profit } = calculationResults;
+            const colorMode = domElements.colorToggle.checked;
+
+            // 更新卖出价格输入框颜色
+            if ((!sellPrice && requiredSellPrice) || 
+                (sellPrice && Math.abs(parseFloat(domElements.sellPrice.value) - sellPrice) < 0.001)) {
+                domElements.sellPrice.className = getColorClass(requiredSellPrice || sellPrice, costPerShare, colorMode);
+            } else {
+                domElements.sellPrice.className = '';
+            }
+
+            // 更新赚钱目标输入框颜色
+            if (profitGoal || profit) {
+                domElements.profitGoal.className = getColorClass(profitGoal || profit, 0, colorMode);
+            } else {
+                domElements.profitGoal.className = '';
+            }
+        }
+        
+        // 更新颜色显示
+        function updateColorDisplay() {
+            // 将全局变量colorMode更新为当前开关状态
+            colorMode = domElements.colorToggle.checked;
+
+            // 更新模式文本
+            domElements.colorModeText.textContent = colorMode ? 
+                "标准模式 (盈利/目标单价高于成本显示绿色，低于显示红色)" : 
+                "反转模式 (盈利/目标单价高于成本显示红色，低于显示绿色)";
+
+            // 更新卖出价格和赚钱目标输入框颜色
+            updateSellPriceColor();
+
+            // 如果有计算结果，更新结果中的颜色
+            if (calculationResults) {
+                // 更新存储的颜色模式
+                calculationResults.colorMode = colorMode;
+                displayResults();
+            }
+        }
+        
+        // 初始化颜色模式文本和其他功能
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOMContentLoaded 事件触发');
+            updateColorDisplay();
+
+            console.log('检查高级功能区元素');
+            // 手动获取高级功能区元素并添加点击事件
+            const advancedHeaderElem = document.getElementById('advancedHeader');
+            if (advancedHeaderElem) {
+                console.log('找到高级功能区标题元素，添加点击事件');
+                advancedHeaderElem.addEventListener('click', function() {
+                    console.log('高级功能区被点击');
+                    toggleAdvancedFeatures();
+                });
+            } else {
+                console.error('未能找到高级功能区标题元素 #advancedHeader');
+            }
+
+            // 为场景分析中的单选按钮添加事件监听
+            const scenarioRadios = document.querySelectorAll('input[name="scenario"]');
+            if (scenarioRadios.length > 0) {
+                console.log(`找到 ${scenarioRadios.length} 个场景分析单选按钮`);
+                scenarioRadios.forEach(radio => {
+                    radio.addEventListener('change', updateScenarioInputs);
+                });
+
+                // 初始化场景输入框状态
+                updateScenarioInputs();
+            } else {
+                console.log('未找到场景分析单选按钮');
+            }
+        });
+
+        // 添加性能优化代码
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(function() {
+                // 在浏览器空闲时预计算一些可能的常用值
+                const commonQuantities = [100, 200, 500, 1000, 2000];
+                const commonPrices = [10, 20, 50, 100, 200];
+
+                // 在空闲时预热一些计算
+                commonPrices.forEach(price => {
+                    commonQuantities.forEach(quantity => {
+                        const totalValue = price * quantity;
+                        const stampDuty = totalValue * STAMP_DUTY_RATE;
+                        // 其他预计算...
+                    });
+                });
+            });
+        }
+
+        // 高级功能区的展开/收起功能
+        function toggleAdvancedFeatures() {
+            console.log('toggleAdvancedFeatures 被调用');
+            // 确保DOM元素已初始化
+            if (!domInitialized) {
+                console.warn('DOM元素尚未初始化，正在重新获取元素');
+                const advancedContent = document.getElementById('advancedContent');
+                const advancedHeader = document.getElementById('advancedHeader');
+
+                if (!advancedContent || !advancedHeader) {
+                    console.error('无法找到高级功能区元素');
+                    return;
+                }
+
+                handleToggle(advancedContent, advancedHeader);
+            } else {
+                // 使用缓存的DOM元素
+                if (!domElements.advancedContent || !domElements.advancedHeader) {
+                    console.error('缓存中找不到高级功能区元素');
+                    return;
+                }
+
+                handleToggle(domElements.advancedContent, domElements.advancedHeader);
+            }
+
+            function handleToggle(content, header) {
+                console.log('当前显示状态:', content.style.display);
+                if (content.style.display === 'none') {
+                    content.style.display = 'block';
+                    header.classList.add('active');
+                    // 更改图标方向
+                    const icon = header.querySelector('.material-icons');
+                    if (icon) icon.textContent = 'expand_less';
+                    // 更新按钮文本
+                    updateToggleButtonText(true);
+                } else {
+                    content.style.display = 'none';
+                    header.classList.remove('active');
+                    // 更改图标方向
+                    const icon = header.querySelector('.material-icons');
+                    if (icon) icon.textContent = 'expand_more';
+                    // 更新按钮文本
+                    updateToggleButtonText(false);
+                }
+            }
+
+            // 更新按钮文本
+            function updateToggleButtonText(isExpanded) {
+                const toggleBtn = document.getElementById('toggleAdvancedBtn');
+                if (toggleBtn) {
+                    toggleBtn.innerHTML = `
+                        <i class="material-icons" style="margin-right: 8px; font-size: 18px; vertical-align: middle;">
+                            ${isExpanded ? 'visibility_off' : 'settings'}
+                        </i>
+                        ${isExpanded ? '收起高级功能' : '展开高级功能'}
+                    `;
+                }
+            }
+        }
+
+        // 备用的高级功能展开/收起函数
+        function toggleAdvancedFeaturesAlt() {
+            console.log('备用的高级功能展开/收起函数被调用');
+            const advancedContent = document.getElementById('advancedContent');
+            if (!advancedContent) {
+                console.error('找不到高级功能内容区域');
+                return;
+            }
+
+            const advancedHeader = document.getElementById('advancedHeader');
+            const isExpanded = advancedContent.style.display !== 'none';
+
+            if (isExpanded) {
+                advancedContent.style.display = 'none';
+                if (advancedHeader) {
+                    advancedHeader.classList.remove('active');
+                    const icon = advancedHeader.querySelector('.material-icons');
+                    if (icon) icon.textContent = 'expand_more';
+                }
+                updateToggleButtonText(false);
+            } else {
+                advancedContent.style.display = 'block';
+                if (advancedHeader) {
+                    advancedHeader.classList.add('active');
+                    const icon = advancedHeader.querySelector('.material-icons');
+                    if (icon) icon.textContent = 'expand_less';
+                }
+                updateToggleButtonText(true);
+            }
+        }
+
+        // 更新场景分析输入框的可用状态
+        function updateScenarioInputs() {
+            const selectedScenarioElem = document.querySelector('input[name="scenario"]:checked');
+            if (!selectedScenarioElem) {
+                console.warn('找不到选中的场景分析单选按钮');
+                return;
+            }
+
+            const selectedScenario = selectedScenarioElem.value;
+
+            // 目标收益率输入框
+            const targetReturnRateInput = document.getElementById('targetReturnRate');
+            if (targetReturnRateInput && targetReturnRateInput.parentElement) {
+                targetReturnRateInput.disabled = selectedScenario !== 'targetReturn';
+                targetReturnRateInput.parentElement.style.opacity = selectedScenario !== 'targetReturn' ? '0.5' : '1';
+            }
+
+            // 止损比例输入框
+            const stopLossRateInput = document.getElementById('stopLossRate');
+            if (stopLossRateInput && stopLossRateInput.parentElement) {
+                stopLossRateInput.disabled = selectedScenario !== 'stopLoss';
+                stopLossRateInput.parentElement.style.opacity = selectedScenario !== 'stopLoss' ? '0.5' : '1';
+            }
+        }
+
+        // 运行批量分析
+        function runBatchAnalysis() {
+            const price = parseFloat(domElements.price.value);
+            const quantity = parseInt(domElements.quantity.value);
+            const startPrice = parseFloat(document.getElementById('batchStartPrice').value);
+            const endPrice = parseFloat(document.getElementById('batchEndPrice').value);
+            const step = parseFloat(document.getElementById('batchStep').value);
+
+            // 验证输入
+            if (!price || !quantity || !startPrice || !endPrice || !step || startPrice >= endPrice || step <= 0) {
+                alert('请检查批量分析的输入参数是否正确');
+                return;
+            }
+
+            // 计算结果数组
+            const results = [];
+            let currentPrice = startPrice;
+
+            // 计算每个价格点的结果
+            while (currentPrice <= endPrice) {
+                // 模拟卖出价格为当前价格点的情况
+                const simulatedResult = simulateTransaction(price, quantity, currentPrice);
+                results.push({
+                    sellPrice: currentPrice,
+                    profit: simulatedResult.profit,
+                    profitPercentage: (simulatedResult.profit / simulatedResult.totalCost) * 100,
+                    sellTotal: simulatedResult.sellTotalValue,
+                    netIncome: simulatedResult.sellTotalCost
+                });
+
+                currentPrice = parseFloat((currentPrice + step).toFixed(3));
+            }
+
+            // 显示批量分析结果
+            displayBatchResults(results);
+        }
+
+        // 模拟交易计算
+        function simulateTransaction(buyPrice, quantity, sellPrice) {
+            const totalValue = buyPrice * quantity;
+
+            // 买入税费计算
+            const stampDuty = totalValue * STAMP_DUTY_RATE;
+            const tradingFee = totalValue * TRADING_FEE_RATE;
+            const tradingLevy = totalValue * TRADING_LEVY_RATE;
+            const frcLevy = totalValue * FRC_LEVY_RATE;
+            const settlementFee = totalValue * SETTLEMENT_FEE_RATE;
+            const charge = FIXED_CHARGE;
+
+            // 总成本
+            const totalCost = totalValue + stampDuty + tradingFee + tradingLevy + frcLevy + settlementFee + charge;
+
+            // 卖出计算
+            const sellTotalValue = sellPrice * quantity;
+            const sellStampDuty = sellTotalValue * STAMP_DUTY_RATE;
+            const sellTradingFee = sellTotalValue * TRADING_FEE_RATE;
+            const sellTradingLevy = sellTotalValue * TRADING_LEVY_RATE;
+            const sellFrcLevy = sellTotalValue * FRC_LEVY_RATE;
+            const sellSettlementFee = sellTotalValue * SETTLEMENT_FEE_RATE;
+            const sellCharge = FIXED_CHARGE;
+
+            // 卖出后实际收入
+            const sellTotalCost = sellTotalValue - sellStampDuty - sellTradingFee - sellTradingLevy - sellFrcLevy - sellSettlementFee - sellCharge;
+
+            // 盈利
+            const profit = sellTotalCost - totalCost;
+
+            return {
+                totalCost,
+                sellTotalValue,
+                sellTotalCost,
+                profit
+            };
+        }
+
+        // 显示批量分析结果
+        function displayBatchResults(results) {
+            // 创建结果区域
+            let resultHTML = `
+                <div class="result-section">
+                    <h3>批量价格分析结果</h3>
+                    <table class="batch-results-table">
+                        <thead>
+                            <tr>
+                                <th>卖出价格 (HK$)</th>
+                                <th>卖出总额 (HK$)</th>
+                                <th>实际收入 (HK$)</th>
+                                <th>盈利 (HK$)</th>
+                                <th>收益率 (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            // 添加每行结果
+            results.forEach(result => {
+                const profitClass = result.profit >= 0 ? 'green-value' : 'red-value';
+                resultHTML += `
+                    <tr>
+                        <td>${result.sellPrice.toFixed(3)}</td>
+                        <td>${result.sellTotal.toFixed(2)}</td>
+                        <td>${result.netIncome.toFixed(2)}</td>
+                        <td class="${profitClass}">${result.profit.toFixed(2)}</td>
+                        <td class="${profitClass}">${result.profitPercentage.toFixed(2)}%</td>
+                    </tr>
+                `;
+            });
+
+            resultHTML += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            // 创建或更新图表容器
+            resultHTML += `
+                <div class="chart-container" id="batchAnalysisChart">
+                </div>
+            `;
+
+            // 显示结果
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = resultHTML;
+
+            // 在这里可以添加图表绘制代码，如果需要引入图表库
+            // 例如使用Chart.js或其他图表库
+        }
+
+        // 运行场景分析
+        function runScenarioAnalysis() {
+            const price = parseFloat(domElements.price.value);
+            const quantity = parseInt(domElements.quantity.value);
+
+            // 验证基本输入
+            if (!price || !quantity || isNaN(price) || isNaN(quantity) || price <= 0 || quantity <= 0) {
+                alert('请先输入有效的股票单价和数量');
+                return;
+            }
+
+            // 获取选中的场景类型
+            const selectedScenario = document.querySelector('input[name="scenario"]:checked').value;
+            let resultHTML = '';
+
+            // 根据不同场景类型进行分析
+            switch (selectedScenario) {
+                case 'breakEven':
+                    resultHTML = analyzeBreakEven(price, quantity);
+                    break;
+
+                case 'targetReturn':
+                    const targetReturnRate = parseFloat(document.getElementById('targetReturnRate').value);
+                    if (isNaN(targetReturnRate) || targetReturnRate <= 0) {
+                        alert('请输入有效的目标收益率');
+                        return;
+                    }
+                    resultHTML = analyzeTargetReturn(price, quantity, targetReturnRate);
+                    break;
+
+                case 'stopLoss':
+                    const stopLossRate = parseFloat(document.getElementById('stopLossRate').value);
+                    if (isNaN(stopLossRate) || stopLossRate <= 0) {
+                        alert('请输入有效的止损比例');
+                        return;
+                    }
+                    resultHTML = analyzeStopLoss(price, quantity, stopLossRate);
+                    break;
+            }
+
+            // 显示场景分析结果
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = resultHTML;
+        }
+
+        // 盈亏平衡点分析
+        function analyzeBreakEven(price, quantity) {
+            // 计算买入总成本
+            const totalValue = price * quantity;
+            const stampDuty = totalValue * STAMP_DUTY_RATE;
+            const tradingFee = totalValue * TRADING_FEE_RATE;
+            const tradingLevy = totalValue * TRADING_LEVY_RATE;
+            const frcLevy = totalValue * FRC_LEVY_RATE;
+            const settlementFee = totalValue * SETTLEMENT_FEE_RATE;
+            const charge = FIXED_CHARGE;
+            const totalCost = totalValue + stampDuty + tradingFee + tradingLevy + frcLevy + settlementFee + charge;
+
+            // 计算盈亏平衡点的卖出价格
+            // 在卖出价为x时，满足: x*quantity*(1-TOTAL_RATE)-FIXED_CHARGE = totalCost
+            const breakEvenPrice = (totalCost + FIXED_CHARGE) / (quantity * (1 - TOTAL_RATE));
+
+            // 计算盈亏平衡点相对于买入价的百分比变化
+            const priceChangePercent = ((breakEvenPrice - price) / price) * 100;
+
+            return `
+                <div class="result-section">
+                    <h3>盈亏平衡点分析</h3>
+                    <div class="result-item">
+                        <span>买入总成本：</span>
+                        <span>HK$ ${totalCost.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>每股成本：</span>
+                        <span>HK$ ${(totalCost / quantity).toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>盈亏平衡卖出价：</span>
+                        <span>HK$ ${breakEvenPrice.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>相对买入价变化：</span>
+                        <span class="${priceChangePercent >= 0 ? 'red-value' : 'green-value'}">必须${priceChangePercent >= 0 ? '上涨' : '下跌'} ${Math.abs(priceChangePercent).toFixed(2)}%</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 目标收益率分析
+        function analyzeTargetReturn(price, quantity, targetReturnRate) {
+            // 计算买入总成本
+            const totalValue = price * quantity;
+            const stampDuty = totalValue * STAMP_DUTY_RATE;
+            const tradingFee = totalValue * TRADING_FEE_RATE;
+            const tradingLevy = totalValue * TRADING_LEVY_RATE;
+            const frcLevy = totalValue * FRC_LEVY_RATE;
+            const settlementFee = totalValue * SETTLEMENT_FEE_RATE;
+            const charge = FIXED_CHARGE;
+            const totalCost = totalValue + stampDuty + tradingFee + tradingLevy + frcLevy + settlementFee + charge;
+
+            // 计算目标收益
+            const targetProfit = totalCost * (targetReturnRate / 100);
+
+            // 计算达到目标收益所需的卖出价格
+            const targetSellPrice = (totalCost + targetProfit + FIXED_CHARGE) / (quantity * (1 - TOTAL_RATE));
+
+            // 计算目标价格相对于买入价的百分比变化
+            const priceChangePercent = ((targetSellPrice - price) / price) * 100;
+
+            return `
+                <div class="result-section">
+                    <h3>目标收益率分析 (${targetReturnRate}%)</h3>
+                    <div class="result-item">
+                        <span>买入总成本：</span>
+                        <span>HK$ ${totalCost.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>目标盈利金额：</span>
+                        <span class="green-value">HK$ ${targetProfit.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>达到目标所需卖出价：</span>
+                        <span class="green-value">HK$ ${targetSellPrice.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>相对买入价变化：</span>
+                        <span class="${priceChangePercent >= 0 ? 'green-value' : 'red-value'}">必须${priceChangePercent >= 0 ? '上涨' : '下跌'} ${Math.abs(priceChangePercent).toFixed(2)}%</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 止损点分析
+        function analyzeStopLoss(price, quantity, stopLossRate) {
+            // 计算买入总成本
+            const totalValue = price * quantity;
+            const stampDuty = totalValue * STAMP_DUTY_RATE;
+            const tradingFee = totalValue * TRADING_FEE_RATE;
+            const tradingLevy = totalValue * TRADING_LEVY_RATE;
+            const frcLevy = totalValue * FRC_LEVY_RATE;
+            const settlementFee = totalValue * SETTLEMENT_FEE_RATE;
+            const charge = FIXED_CHARGE;
+            const totalCost = totalValue + stampDuty + tradingFee + tradingLevy + frcLevy + settlementFee + charge;
+
+            // 计算止损金额
+            const lossAmount = totalCost * (stopLossRate / 100);
+
+            // 计算止损点的卖出价格
+            const stopLossPrice = (totalCost - lossAmount + FIXED_CHARGE) / (quantity * (1 - TOTAL_RATE));
+
+            // 计算止损价格相对于买入价的百分比变化
+            const priceChangePercent = ((stopLossPrice - price) / price) * 100;
+
+            return `
+                <div class="result-section">
+                    <h3>止损点分析 (${stopLossRate}%)</h3>
+                    <div class="result-item">
+                        <span>买入总成本：</span>
+                        <span>HK$ ${totalCost.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>可接受亏损金额：</span>
+                        <span class="red-value">HK$ ${lossAmount.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>止损卖出价：</span>
+                        <span class="red-value">HK$ ${stopLossPrice.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>相对买入价变化：</span>
+                        <span class="${priceChangePercent >= 0 ? 'green-value' : 'red-value'}">股价${priceChangePercent >= 0 ? '上涨' : '下跌'} ${Math.abs(priceChangePercent).toFixed(2)}%</span>
+                    </div>
+                </div>
+            `;
+        }
+        // 确保页面加载后初始化所有功能
+        window.addEventListener('load', function() {
+            console.log('页面完全加载完成，执行最终初始化');
+
+            // 尝试再次绑定高级功能区事件
+            const advancedHeader = document.getElementById('advancedHeader');
+            const advancedContent = document.getElementById('advancedContent');
+            const toggleBtn = document.getElementById('toggleAdvancedBtn');
+
+            if (advancedHeader && advancedContent) {
+                console.log('重新绑定高级功能区事件');
+
+                // 移除可能存在的旧事件监听器
+                const newHeader = advancedHeader.cloneNode(true);
+                advancedHeader.parentNode.replaceChild(newHeader, advancedHeader);
+
+                // 添加新的事件监听器
+                newHeader.addEventListener('click', function() {
+                    console.log('高级功能区被点击(重新绑定)');
+                    if (advancedContent.style.display === 'none') {
+                        advancedContent.style.display = 'block';
+                        newHeader.classList.add('active');
+                        const icon = newHeader.querySelector('.material-icons');
+                        if (icon) icon.textContent = 'expand_less';
+                        if (toggleBtn) toggleBtn.innerHTML = '<i class="material-icons" style="margin-right: 8px; font-size: 18px; vertical-align: middle;">visibility_off</i> 收起高级功能';
+                    } else {
+                        advancedContent.style.display = 'none';
+                        newHeader.classList.remove('active');
+                        const icon = newHeader.querySelector('.material-icons');
+                        if (icon) icon.textContent = 'expand_more';
+                        if (toggleBtn) toggleBtn.innerHTML = '<i class="material-icons" style="margin-right: 8px; font-size: 18px; vertical-align: middle;">settings</i> 展开高级功能';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

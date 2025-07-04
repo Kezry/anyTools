@@ -1,0 +1,24 @@
+
+{
+  "hsbc_trade25_calculator": {
+    "name": "hsbc_trade25_calculator.html",
+    "title": "汇丰Trade25港股成交价计算器",
+    "description": "汇丰Trade25港股成交价计算器",
+    "category": "效率工具",
+    "icon": "calculator"
+  },
+  "hsbc_trade25_calculator_v1.1": {
+    "name": "hsbc_trade25_calculator_v1.1.html",
+    "title": "汇丰Trade25港股成交价计算器_v1.1",
+    "description": "汇丰Trade25港股成交价计算器",
+    "category": "效率工具",
+    "icon": "calculator"
+  },
+  "bean-sql-change": {
+    "name": "bean-sql-change.html",
+    "title": "字段名转换工具",
+    "description": "多模式字段名转换工具，支持各种命名格式转换",
+    "category": "开发工具",
+    "icon": "exchange-alt"
+  }
+}

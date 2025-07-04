@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工具列表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36D399',
+                        neutral: {
+                            100: '#F9FAFB',
+                            200: '#F3F4F6',
+                            300: '#E5E7EB',
+                            700: '#374151',
+                            800: '#1F2937',
+                            900: '#111827'
+                        }
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                },
+            }
+        }
+    </script>
+
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-transition {
+                transition: all 0.3s ease;
+            }
+            .scale-hover {
+                transition: transform 0.2s ease-in-out;
+            }
+            .scale-hover:hover {
+                transform: scale(1.02);
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-neutral-100 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-cogs text-primary text-2xl"></i>
+                <h1 class="text-xl md:text-2xl font-bold text-neutral-800">工具中心</h1>
+            </div>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#" class="text-neutral-700 hover:text-primary transition-colors">首页</a>
+                <a href="#" class="text-neutral-700 hover:text-primary transition-colors">分类</a>
+                <a href="#" class="text-neutral-700 hover:text-primary transition-colors">收藏</a>
+                <a href="#" class="text-neutral-700 hover:text-primary transition-colors">关于</a>
+            </div>
+            <button class="md:hidden text-neutral-700">
+                <i class="fa fa-bars text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 py-8">
+        <div class="mb-8 text-center">
+            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-neutral-800 mb-2">实用工具集合</h2>
+            <p class="text-neutral-600 max-w-2xl mx-auto">
+                收集各类实用工具，提升工作效率与生活品质
+            </p>
+        </div>
+
+        <!-- 分类标签 -->
+        <div id="categories-container" class="flex flex-wrap justify-center gap-3 mb-8">
+            <!-- 分类按钮将通过JavaScript动态生成 -->
+        </div>
+
+        <!-- 工具卡片网格 -->
+        <div id="tools-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- 工具卡片将通过JavaScript动态生成 -->
+        </div>
+    </main>
+
+    <script>
+        let toolsData = [];
+        let toolsArray = [];
+
+        // 获取所有工具类别
+        function getCategories() {
+            const categories = new Set();
+            toolsArray.forEach(tool => categories.add(tool.category));
+            return Array.from(categories);
+        }
+
+        // 渲染分类按钮
+        function renderCategoryButtons() {
+            const categoriesContainer = document.getElementById('categories-container');
+            categoriesContainer.innerHTML = '';
+
+            // 添加"全部"按钮
+            const allButton = document.createElement('button');
+            allButton.className = 'px-4 py-2 bg-primary text-white rounded-full shadow-sm hover:bg-primary/90 transition-colors';
+            allButton.textContent = '全部';
+            allButton.onclick = () => filterTools('all');
+            categoriesContainer.appendChild(allButton);
+
+            // 添加各分类按钮
+            const categories = getCategories();
+            categories.forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'px-4 py-2 bg-white text-neutral-700 rounded-full shadow-sm hover:bg-neutral-200 transition-colors';
+                button.textContent = category;
+                button.onclick = () => filterTools(category);
+                categoriesContainer.appendChild(button);
+            });
+        }
+
+        // 过滤工具
+        function filterTools(category) {
+            const filteredTools = category === 'all' 
+                ? toolsArray 
+                : toolsArray.filter(tool => tool.category === category);
+
+            renderTools(filteredTools);
+
+            // 更新分类按钮样式
+            document.querySelectorAll('#categories-container button').forEach(btn => {
+                btn.classList.remove('bg-primary', 'text-white');
+                btn.classList.add('bg-white', 'text-neutral-700');
+            });
+
+            // 设置当前选中的分类按钮样式
+            const buttons = Array.from(document.querySelectorAll('#categories-container button'));
+            const targetButton = category === 'all' 
+                ? buttons[0] 
+                : buttons.find(btn => btn.textContent === category);
+
+            if (targetButton) {
+                targetButton.classList.remove('bg-white', 'text-neutral-700');
+                targetButton.classList.add('bg-primary', 'text-white');
+            }
+        }
+
+        // 渲染工具卡片
+        function renderTools(tools) {
+            const container = document.getElementById('tools-container');
+            container.innerHTML = '';
+
+            tools.forEach((tool, index) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-card hover:shadow-card-hover card-transition scale-hover overflow-hidden opacity-0 translate-y-4';
+                card.innerHTML = `
+                    <div class="h-48 bg-primary/10 flex items-center justify-center">
+                        <i class="fa fa-${tool.icon} text-primary text-6xl"></i>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="text-lg font-semibold text-neutral-800 mb-2">${tool.title}</h3>
+                        <p class="text-neutral-600 text-sm mb-4">${tool.description}</p>
+                        <a href="./tools/${tool.name}" class="inline-flex items-center text-primary font-medium">
+                            使用工具 <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                `;
+
+                // 添加动画延迟效果
+                setTimeout(() => {
+                    card.classList.add('opacity-100');
+                    card.classList.remove('opacity-0', 'translate-y-4');
+                }, 100 * index);
+
+                container.appendChild(card);
+            });
+        }
+
+        // 初始化页面
+        async function init() {
+            try {
+                // 使用绝对URL加载配置文件（需本地服务器支持）
+                const response = await fetch('./tools/config.json');
+                toolsData = await response.json();
+
+                // 将对象转换为数组以便于处理
+                toolsArray = Object.keys(toolsData).map(key => {
+                    const tool = toolsData[key];
+                    tool.id = key; // 保存ID
+                    return tool;
+                });
+
+                // 渲染分类按钮
+                renderCategoryButtons();
+
+                // 默认显示全部工具
+                filterTools('all');
+
+            } catch (error) {
+                console.error('获取工具数据失败:', error);
+                document.getElementById('tools-container').innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <i class="fa fa-exclamation-triangle text-red-500 text-5xl mb-4"></i>
+                        <h3 class="text-xl font-semibold text-neutral-800 mb-2">加载工具列表失败</h3>
+                        <p class="text-neutral-600">无法读取配置文件，请检查网络连接或稍后重试</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+    <!-- 页脚 -->
+    <footer class="bg-neutral-800 text-white py-8 mt-12">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <i class="fa fa-cogs text-primary text-xl"></i>
+                        <span class="text-xl font-bold">工具中心</span>
+                    </div>
+                    <p class="text-neutral-400 text-sm">版权 &copy; 2025 Kezry</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="https://github.com/kezry" class="text-neutral-400 hover:text-white transition-colors">
+                        <i class="fa fa-github text-xl"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 页面加载动画
+        document.addEventListener('DOMContentLoaded', () => {
+            // 为工具卡片添加进入动画
+            const cards = document.querySelectorAll('.grid > div');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('opacity-100');
+                    card.classList.remove('opacity-0', 'translate-y-4');
+                }, 100 * index);
+            });
+        });
+    </script>
+</body>
+</html>
