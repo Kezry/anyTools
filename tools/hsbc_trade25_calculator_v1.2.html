@@ -1,0 +1,2601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>汇丰Trade25港股成交价计算器 v1.6.0 - 增强版</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            /* Material You Color System */
+            --md-sys-color-primary: #6750A4;
+            --md-sys-color-on-primary: #FFFFFF;
+            --md-sys-color-primary-container: #EADDFF;
+            --md-sys-color-on-primary-container: #21005D;
+            
+            --md-sys-color-secondary: #625B71;
+            --md-sys-color-on-secondary: #FFFFFF;
+            --md-sys-color-secondary-container: #E8DEF8;
+            --md-sys-color-on-secondary-container: #1D192B;
+            
+            --md-sys-color-tertiary: #7D5260;
+            --md-sys-color-on-tertiary: #FFFFFF;
+            --md-sys-color-tertiary-container: #FFD8E4;
+            --md-sys-color-on-tertiary-container: #31111D;
+            
+            --md-sys-color-error: #BA1A1A;
+            --md-sys-color-error-container: #FFDAD6;
+            --md-sys-color-on-error: #FFFFFF;
+            --md-sys-color-on-error-container: #410002;
+            
+            --md-sys-color-background: #FFFBFE;
+            --md-sys-color-on-background: #1C1B1F;
+            --md-sys-color-surface: #FFFBFE;
+            --md-sys-color-on-surface: #1C1B1F;
+            --md-sys-color-surface-variant: #E7E0EC;
+            --md-sys-color-on-surface-variant: #49454F;
+            --md-sys-color-outline: #79747E;
+            --md-sys-color-outline-variant: #CAC4D0;
+            
+            /* Material You Typography Scale */
+            --md-sys-typescale-display-large-font: 'Roboto';
+            --md-sys-typescale-display-large-size: 57px;
+            --md-sys-typescale-display-large-weight: 400;
+            --md-sys-typescale-display-large-line-height: 64px;
+            
+            --md-sys-typescale-headline-large-font: 'Roboto';
+            --md-sys-typescale-headline-large-size: 32px;
+            --md-sys-typescale-headline-large-weight: 400;
+            --md-sys-typescale-headline-large-line-height: 40px;
+            
+            --md-sys-typescale-title-large-font: 'Roboto';
+            --md-sys-typescale-title-large-size: 22px;
+            --md-sys-typescale-title-large-weight: 400;
+            --md-sys-typescale-title-large-line-height: 28px;
+            
+            --md-sys-typescale-body-large-font: 'Roboto';
+            --md-sys-typescale-body-large-size: 16px;
+            --md-sys-typescale-body-large-weight: 400;
+            --md-sys-typescale-body-large-line-height: 24px;
+            
+            --md-sys-typescale-label-large-font: 'Roboto';
+            --md-sys-typescale-label-large-size: 14px;
+            --md-sys-typescale-label-large-weight: 500;
+            --md-sys-typescale-label-large-line-height: 20px;
+            
+            /* Material You Shape System */
+            --md-sys-shape-corner-none: 0px;
+            --md-sys-shape-corner-extra-small: 4px;
+            --md-sys-shape-corner-small: 8px;
+            --md-sys-shape-corner-medium: 12px;
+            --md-sys-shape-corner-large: 16px;
+            --md-sys-shape-corner-extra-large: 28px;
+            
+            /* Material You Elevation */
+            --md-sys-elevation-level0: 0px 0px 0px 0px rgba(0, 0, 0, 0.2), 0px 0px 0px 0px rgba(0, 0, 0, 0.14), 0px 0px 0px 0px rgba(0, 0, 0, 0.12);
+            --md-sys-elevation-level1: 0px 2px 1px -1px rgba(0, 0, 0, 0.2), 0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+            --md-sys-elevation-level2: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12);
+            --md-sys-elevation-level3: 0px 3px 3px -2px rgba(0, 0, 0, 0.2), 0px 3px 4px 0px rgba(0, 0, 0, 0.14), 0px 1px 8px 0px rgba(0, 0, 0, 0.12);
+            --md-sys-elevation-level4: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);
+            --md-sys-elevation-level5: 0px 3px 5px -1px rgba(0, 0, 0, 0.2), 0px 5px 8px 0px rgba(0, 0, 0, 0.14), 0px 1px 14px 0px rgba(0, 0, 0, 0.12);
+        }
+        body {
+            font-family: var(--md-sys-typescale-body-large-font), system-ui, -apple-system, sans-serif;
+            font-size: var(--md-sys-typescale-body-large-size);
+            font-weight: var(--md-sys-typescale-body-large-weight);
+            line-height: var(--md-sys-typescale-body-large-line-height);
+            background-color: var(--md-sys-color-background);
+            color: var(--md-sys-color-on-background);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* 优化布局 - Material You 响应式网格系统 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+            background-color: var(--md-sys-color-background);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        @media (min-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr 400px;
+            }
+        }
+
+        /* Material You Surface Containers */
+        .md-surface {
+            background-color: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            border-radius: var(--md-sys-shape-corner-large);
+            box-shadow: var(--md-sys-elevation-level1);
+        }
+
+        .md-surface-variant {
+            background-color: var(--md-sys-color-surface-variant);
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        .input-section {
+            background: var(--md-sys-color-surface);
+            border-radius: var(--md-sys-shape-corner-extra-large);
+            padding: 24px;
+            box-shadow: var(--md-sys-elevation-level2);
+            border: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .results-section {
+            background: var(--md-sys-color-surface);
+            border-radius: var(--md-sys-shape-corner-extra-large);
+            padding: 24px;
+            box-shadow: var(--md-sys-elevation-level2);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            position: sticky;
+            top: 24px;
+            max-height: calc(100vh - 48px);
+            overflow-y: auto;
+        }
+
+        /* Material You Typography */
+        .md-headline-large {
+            font-family: var(--md-sys-typescale-headline-large-font);
+            font-size: var(--md-sys-typescale-headline-large-size);
+            font-weight: var(--md-sys-typescale-headline-large-weight);
+            line-height: var(--md-sys-typescale-headline-large-line-height);
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .md-title-large {
+            font-family: var(--md-sys-typescale-title-large-font);
+            font-size: var(--md-sys-typescale-title-large-size);
+            font-weight: var(--md-sys-typescale-title-large-weight);
+            line-height: var(--md-sys-typescale-title-large-line-height);
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .md-label-large {
+            font-family: var(--md-sys-typescale-label-large-font);
+            font-size: var(--md-sys-typescale-label-large-size);
+            font-weight: var(--md-sys-typescale-label-large-weight);
+            line-height: var(--md-sys-typescale-label-large-line-height);
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        /* Material You Form Components */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        @media (min-width: 768px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .form-group.full-width {
+                grid-column: 1 / -1;
+            }
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 4px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-family: var(--md-sys-typescale-label-large-font);
+            font-size: var(--md-sys-typescale-label-large-size);
+            font-weight: var(--md-sys-typescale-label-large-weight);
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            padding: 16px;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: var(--md-sys-shape-corner-small);
+            font-size: var(--md-sys-typescale-body-large-size);
+            font-family: var(--md-sys-typescale-body-large-font);
+            background: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            transition: all 0.2s cubic-bezier(0.2, 0.0, 0.0, 1.0);
+            outline: none;
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--md-sys-color-primary);
+            box-shadow: 0 0 0 2px var(--md-sys-color-primary-container);
+        }
+
+        .input-wrapper input:hover:not(:focus) {
+            border-color: var(--md-sys-color-on-surface);
+        }
+
+        .input-wrapper input.error {
+            border-color: var(--md-sys-color-error);
+            box-shadow: 0 0 0 2px var(--md-sys-color-error-container);
+        }
+
+        /* Material You Button System */
+        .md-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 24px;
+            border: none;
+            border-radius: var(--md-sys-shape-corner-large);
+            font-family: var(--md-sys-typescale-label-large-font);
+            font-size: var(--md-sys-typescale-label-large-size);
+            font-weight: var(--md-sys-typescale-label-large-weight);
+            line-height: var(--md-sys-typescale-label-large-line-height);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0.0, 0.0, 1.0);
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            min-height: 40px;
+        }
+
+        .md-button-filled {
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            box-shadow: var(--md-sys-elevation-level0);
+        }
+
+        .md-button-filled:hover {
+            background-color: var(--md-sys-color-primary);
+            box-shadow: var(--md-sys-elevation-level1);
+        }
+
+        .md-button-filled:active {
+            box-shadow: var(--md-sys-elevation-level0);
+        }
+
+        .md-button-outlined {
+            background-color: transparent;
+            color: var(--md-sys-color-primary);
+            border: 1px solid var(--md-sys-color-outline);
+        }
+
+        .md-button-outlined:hover {
+            background-color: var(--md-sys-color-primary-container);
+            border-color: var(--md-sys-color-primary);
+        }
+
+        .md-button-text {
+            background-color: transparent;
+            color: var(--md-sys-color-primary);
+        }
+
+        .md-button-text:hover {
+            background-color: var(--md-sys-color-primary-container);
+        }
+
+        .md-button-full {
+            width: 100%;
+        }
+
+        /* Material You State Layers */
+        .md-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: currentColor;
+            opacity: 0;
+            transition: opacity 0.2s cubic-bezier(0.2, 0.0, 0.0, 1.0);
+        }
+
+        .md-button:hover::before {
+            opacity: 0.08;
+        }
+
+        .md-button:focus::before {
+            opacity: 0.12;
+        }
+
+        .md-button:active::before {
+            opacity: 0.16;
+        }
+
+        /* Material You Card System */
+        .md-card {
+            background: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            border-radius: var(--md-sys-shape-corner-medium);
+            box-shadow: var(--md-sys-elevation-level1);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            overflow: hidden;
+            transition: all 0.2s cubic-bezier(0.2, 0.0, 0.0, 1.0);
+        }
+
+        .md-card:hover {
+            box-shadow: var(--md-sys-elevation-level2);
+        }
+
+        .md-card-filled {
+            background: var(--md-sys-color-surface-variant);
+            color: var(--md-sys-color-on-surface-variant);
+            border: none;
+        }
+
+        .md-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .md-card-content {
+            padding: 24px;
+        }
+
+        .md-card-title {
+            font-family: var(--md-sys-typescale-title-large-font);
+            font-size: var(--md-sys-typescale-title-large-size);
+            font-weight: var(--md-sys-typescale-title-large-weight);
+            line-height: var(--md-sys-typescale-title-large-line-height);
+            color: var(--md-sys-color-on-surface);
+            margin: 0;
+        }
+        
+        /* Material You Color Classes for Price Display */
+        .green-value {
+            color: #2E7D32 !important;
+            font-weight: 500;
+        }
+        .red-value {
+            color: var(--md-sys-color-error) !important;
+            font-weight: 500;
+        }
+        
+        /* Input color classes */
+        input.green-value {
+            color: #2E7D32 !important;
+            font-weight: 500;
+            border-color: #2E7D32 !important;
+        }
+        
+        input.red-value {
+            color: var(--md-sys-color-error) !important;
+            font-weight: 500;
+            border-color: var(--md-sys-color-error) !important;
+        }
+        
+        /* Hint color classes */
+        .green-hint {
+            color: #2E7D32 !important;
+        }
+        .red-hint {
+            color: var(--md-sys-color-error) !important;
+        }
+        
+        /* Material You Theme Toggle Button - Single Button Design */
+        .theme-toggle {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 10;
+        }
+        
+        .theme-toggle-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--md-sys-shape-corner-large);
+            background-color: var(--md-sys-color-surface);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.2, 0.0, 0.0, 1.0);
+            position: relative;
+            box-shadow: var(--md-sys-elevation-level1);
+            overflow: hidden;
+        }
+        
+        .theme-toggle-btn:hover {
+            background-color: var(--md-sys-color-surface-variant);
+            border-color: var(--md-sys-color-outline);
+            box-shadow: var(--md-sys-elevation-level2);
+        }
+        
+        .theme-toggle-btn:active {
+            box-shadow: var(--md-sys-elevation-level0);
+            transform: scale(0.95);
+        }
+        
+        /* Material You State Layer */
+        .theme-toggle-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--md-sys-color-on-surface);
+            opacity: 0;
+            transition: opacity 0.2s cubic-bezier(0.2, 0.0, 0.0, 1.0);
+            border-radius: inherit;
+        }
+        
+        .theme-toggle-btn:hover::before {
+            opacity: 0.08;
+        }
+        
+        .theme-toggle-btn:focus::before {
+            opacity: 0.12;
+        }
+        
+        .theme-toggle-btn:active::before {
+            opacity: 0.16;
+        }
+        
+        .color-mode-icon {
+            position: absolute;
+            transition: all 0.4s cubic-bezier(0.2, 0.0, 0.0, 1.0);
+            font-size: 24px;
+            z-index: 1;
+        }
+        
+        .standard-icon {
+            color: #2E7D32;
+            opacity: 1;
+            transform: translateY(0) rotate(0deg);
+        }
+        
+        .reverse-icon {
+            color: var(--md-sys-color-error);
+            opacity: 0;
+            transform: translateY(24px) rotate(180deg);
+        }
+        
+        .theme-toggle-btn.reverse-mode .standard-icon {
+            opacity: 0;
+            transform: translateY(-24px) rotate(-180deg);
+        }
+        
+        .theme-toggle-btn.reverse-mode .reverse-icon {
+            opacity: 1;
+            transform: translateY(0) rotate(0deg);
+        }
+        
+        /* Tooltip */
+        .theme-toggle-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background-color: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            border-radius: var(--md-sys-shape-corner-small);
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s cubic-bezier(0.2, 0.0, 0.0, 1.0);
+            box-shadow: var(--md-sys-elevation-level2);
+            z-index: 1000;
+            transform: translateY(-4px);
+            font-family: var(--md-sys-typescale-body-small-font);
+        }
+        
+        .theme-toggle-btn:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .theme-toggle {
+                top: 12px;
+                right: 12px;
+            }
+            
+            .theme-toggle-btn {
+                width: 44px;
+                height: 44px;
+            }
+            
+            .color-mode-icon {
+                font-size: 22px;
+            }
+            
+            /* Hide tooltip on mobile */
+            .theme-toggle-btn::after {
+                display: none;
+            }
+        }
+        
+        .hidden-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        /* Original calculator layout styles */
+        .cost-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        @media (min-width: 576px) {
+            .cost-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        .cost-item {
+            background-color: var(--md-sys-color-surface-variant);
+            border-radius: var(--md-sys-shape-corner-small);
+            padding: 8px 12px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--md-sys-elevation-level1);
+        }
+        .cost-item span:first-child {
+            font-size: 11px;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-bottom: 2px;
+        }
+        .cost-item span:last-child {
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface);
+            font-size: 14px;
+        }
+        .result-summary {
+            border-top: 1px solid var(--md-sys-color-outline-variant);
+            padding-top: 8px;
+            margin-top: 5px;
+        }
+        .result-summary .result-item.total {
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            border-radius: var(--md-sys-shape-corner-small);
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+        
+        /* Target calculation layout */
+        .target-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        @media (min-width: 576px) {
+            .target-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .target-item {
+            background-color: var(--md-sys-color-surface-variant);
+            border-radius: var(--md-sys-shape-corner-small);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--md-sys-elevation-level1);
+        }
+        .target-label {
+            font-size: 12px;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-bottom: 5px;
+        }
+        .target-value {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        /* Material You Result Display */
+        .result-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--md-sys-color-surface-variant);
+            border-radius: var(--md-sys-shape-corner-small);
+            border-left: 4px solid var(--md-sys-color-primary);
+            transition: all 0.2s cubic-bezier(0.2, 0.0, 0.0, 1.0);
+        }
+
+        .result-item:hover {
+            background: var(--md-sys-color-primary-container);
+        }
+
+        .result-label {
+            font-family: var(--md-sys-typescale-label-large-font);
+            font-size: var(--md-sys-typescale-label-large-size);
+            font-weight: var(--md-sys-typescale-label-large-weight);
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        .result-value {
+            font-family: var(--md-sys-typescale-body-large-font);
+            font-size: var(--md-sys-typescale-body-large-size);
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .result-highlight {
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            border-left-color: var(--md-sys-color-primary);
+        }
+
+        .result-highlight .result-label {
+            color: var(--md-sys-color-on-primary-container);
+        }
+
+        .result-highlight .result-value {
+            color: var(--md-sys-color-on-primary-container);
+        }
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        .input-container {
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--divider-color);
+            border-radius: 4px;
+            font-size: 16px;
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: transparent;
+            color: var(--text-primary);
+            transition: border 0.2s ease, box-shadow 0.2s ease, color 0.3s ease;
+            outline: none;
+            max-width: calc(100% - 32px);
+            box-sizing: border-box;
+        }
+
+        /* 输入框的颜色类 */
+        input.green-value {
+            color: var(--secondary-color);
+            font-weight: 500;
+            border-color: var(--secondary-color);
+        }
+
+        input.red-value {
+            color: var(--error-color);
+            font-weight: 500;
+            border-color: var(--error-color);
+        }
+
+        /* 提示信息样式 */
+        #profitGoalHint, #sellPriceHint {
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-style: italic;
+            margin-top: 4px;
+            display: block;
+            transition: color 0.3s ease;
+        }
+
+        #profitGoalHint.green-hint, #sellPriceHint.green-hint {
+            color: var(--secondary-color);
+        }
+
+        #profitGoalHint.red-hint, #sellPriceHint.red-hint {
+            color: var(--error-color);
+        }
+        input[type="number"]:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 1px 2px 0 rgba(66, 133, 244, 0.3);
+        }
+        .clear-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-secondary);
+            opacity: 0;
+            transition: opacity 0.3s, color 0.2s;
+            background: none;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 18px;
+        }
+        .clear-btn i {
+            font-size: 18px;
+        }
+        .clear-btn:hover {
+            color: var(--text-primary);
+            background-color: rgba(95, 99, 104, 0.1);
+        }
+        .clear-btn:hover {
+            color: #333;
+        }
+        input[type="number"]:focus + .clear-btn,
+        input[type="number"]:not(:placeholder-shown) + .clear-btn {
+            opacity: 1;
+        }
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1.25px;
+            width: 100%;
+            box-shadow: 0 1px 2px rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            background-color: var(--primary-dark-color);
+            box-shadow: 0 1px 3px rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+        }
+        button:active {
+            background-color: var(--primary-dark-color);
+            box-shadow: 0 1px 2px rgba(60,64,67,0.3);
+        }
+
+        /* 添加水波纹效果 */
+        button {
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%, -50%);
+            transform-origin: 50% 50%;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(100, 100);
+                opacity: 0;
+            }
+        }
+
+        button:focus:not(:active)::after {
+            animation: ripple 0.8s ease-out;
+        }
+        /* 重置关联按钮样式 */
+        .reset-related-btn {
+            background-color: transparent;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            box-shadow: none;
+            border: none;
+            padding: 8px 12px;
+            font-size: 12px;
+            text-transform: none;
+            letter-spacing: 0.4px;
+            width: auto;
+            float: right;
+            border-radius: 16px;
+            transition: all 0.2s ease;
+        }
+        .reset-related-btn:hover {
+            background-color: rgba(95, 99, 104, 0.1);
+            color: var(--primary-color);
+            box-shadow: none;
+        }
+        .reset-related-btn:active {
+            background-color: rgba(95, 99, 104, 0.2);
+            transform: translateY(1px);
+        }
+        .result {
+            margin-top: 32px;
+            padding: 24px;
+            background-color: var(--primary-light-color);
+            border-radius: 8px;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result-section {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--divider-color);
+        }
+        .result-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .result-section h3 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+            font-size: 18px;
+            font-weight: 500;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+        .result-item:last-child {
+            border-bottom: none;
+            font-weight: 500;
+            background-color: rgba(66, 133, 244, 0.05);
+            padding: 12px 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+        .green-value {
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+        .red-value {
+            color: var(--error-color);
+            font-weight: 500;
+        }
+
+        /* 头部样式 */
+        .header {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            padding-right: 80px; /* 为右上角的开关留出空间 */
+            border-bottom: 1px solid var(--divider-color);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 24px;
+            font-weight: 500;
+            margin: 0 0 8px 0;
+        }
+
+        .version-info {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        /* 右上角红绿显示模式切换按钮样式 */
+        .color-mode-switch {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            z-index: 10;
+        }
+
+        .icon-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: transparent;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            position: relative;
+            box-shadow: none;
+            overflow: hidden;
+        }
+
+        .icon-button:hover {
+            background-color: rgba(60, 64, 67, 0.08);
+            box-shadow: none;
+        }
+
+        .mode-icon {
+            position: absolute;
+            transition: all 0.3s ease;
+            font-size: 24px;
+        }
+
+        .standard-mode-icon {
+            color: var(--secondary-color);
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reverse-mode-icon {
+            color: var(--error-color);
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .color-mode-active .standard-mode-icon {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        .color-mode-active .reverse-mode-icon {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .hidden-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Material Design 移动设备适配 */
+        /* 新增：加载性能优化 */
+        .calculator {
+            contain: layout style;
+            will-change: opacity, transform;
+        }
+
+        /* 新增：动画性能优化 */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* 优化触摸交互 */
+        @media (hover: none) and (pointer: coarse) {
+            input[type="number"] {
+                padding: 14px 16px;
+                font-size: 16px;
+            }
+            
+            button {
+                padding: 14px 24px;
+                min-height: 48px;
+            }
+        }
+
+                    @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+            .calculator {
+                padding: 16px;
+                border-radius: 8px;
+            }
+            .half-width {
+                flex: 0 0 calc(100% - 24px);
+            }
+            h2 {
+                font-size: 20px;
+                margin-top: 8px;
+                margin-bottom: 16px;
+                color: var(--primary-color);
+            }
+            .form-group {
+                margin-bottom: 20px;
+            }
+            label {
+                font-size: 14px;
+            }
+            .result-item {
+                flex-direction: column;
+                padding-bottom: 12px;
+            }
+            .result-item span:last-child {
+                margin-top: 4px;
+                align-self: flex-end;
+                font-weight: 500;
+            }
+            .result-section h3 {
+                font-size: 16px;
+            }
+            .toggle-container {
+                flex-wrap: wrap;
+                padding: 12px;
+            }
+            #colorModeText {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 8px;
+                font-size: 12px;
+                color: var(--text-secondary);
+            }
+            button {
+                padding: 12px 16px;
+                font-size: 14px;
+                border-radius: 4px;
+                letter-spacing: 0.5px;
+            }
+            .result {
+                padding: 16px;
+                font-size: 14px;
+                margin-top: 24px;
+            }
+        }
+
+        /* Material Design 触摸优化 */
+        @media (hover: none) {
+            .clear-btn {
+                opacity: 0.8;
+                background-color: rgba(95, 99, 104, 0.05);
+            }
+            button:active {
+                background-color: var(--primary-dark-color);
+                transform: translateY(1px);
+            }
+        }
+
+        /* 触摸设备优化 */
+        @media (hover: none) {
+            .clear-btn {
+                opacity: 0.7;
+            }
+            button:active {
+                background-color: #b30000;
+            }
+        }
+
+        /* 高级功能区样式 */
+        /* 高级功能区优化 */
+        .advanced-section {
+            margin-top: 32px;
+        }
+
+        .advanced-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: var(--primary-light-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .advanced-header:hover {
+            border-color: var(--primary-color);
+            background: rgba(66, 133, 244, 0.1);
+        }
+
+        .advanced-header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .advanced-content {
+            margin-top: 16px;
+            padding: 24px;
+            background: var(--background-color);
+            border-radius: 12px;
+            border: 1px solid var(--divider-color);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            max-height: 2000px;
+        }
+
+        .advanced-content.collapsed {
+            max-height: 0;
+            padding: 0 24px;
+            opacity: 0;
+        }
+
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+
+            .main-grid {
+                gap: 16px;
+            }
+
+            .input-section,
+            .results-section,
+            .card {
+                padding: 20px;
+                border-radius: 12px;
+            }
+
+            .results-section {
+                position: static;
+                max-height: none;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .input-wrapper input {
+                padding: 14px;
+                font-size: 16px;
+            }
+
+            .btn {
+                padding: 14px 20px;
+                font-size: 15px;
+            }
+
+            .advanced-content {
+                padding: 16px;
+            }
+
+            .result-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+
+            .result-value {
+                align-self: flex-end;
+            }
+        }
+
+        /* 超小屏幕优化 */
+        @media (max-width: 480px) {
+            .container {
+                padding: 8px;
+            }
+
+            .header {
+                padding: 16px;
+                text-align: center;
+            }
+
+            .header h2 {
+                font-size: 20px;
+                margin-bottom: 8px;
+            }
+
+            .version-info {
+                font-size: 11px;
+                line-height: 1.4;
+            }
+
+            .color-mode-switch {
+                top: 12px;
+                right: 12px;
+            }
+
+            .input-section,
+            .results-section {
+                padding: 16px;
+            }
+
+            .card-header {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+        }
+
+        .secondary-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--md-sys-shape-corner-large);
+            font-family: var(--md-sys-typescale-label-large-font);
+            font-size: var(--md-sys-typescale-label-large-size);
+            font-weight: var(--md-sys-typescale-label-large-weight);
+            line-height: var(--md-sys-typescale-label-large-line-height);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0.0, 0.0, 1.0);
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            min-height: 40px;
+            background-color: var(--md-sys-color-secondary);
+            color: var(--md-sys-color-on-secondary);
+            box-shadow: var(--md-sys-elevation-level1);
+            width: 100%;
+        }
+
+        .secondary-btn:hover {
+            background-color: var(--md-sys-color-secondary);
+            box-shadow: var(--md-sys-elevation-level2);
+        }
+
+        .secondary-btn:active {
+            box-shadow: var(--md-sys-elevation-level0);
+        }
+
+        /* Material You State Layers for secondary button */
+        .secondary-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: currentColor;
+            opacity: 0;
+            transition: opacity 0.2s cubic-bezier(0.2, 0.0, 0.0, 1.0);
+        }
+
+        .secondary-btn:hover::before {
+            opacity: 0.08;
+        }
+
+        .secondary-btn:focus::before {
+            opacity: 0.12;
+        }
+
+        .secondary-btn:active::before {
+            opacity: 0.16;
+        }
+
+        /* 场景分析样式 */
+        .scenario-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .scenario-item {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .scenario-input {
+            flex: 1;
+            min-width: 120px;
+            margin-left: 8px;
+        }
+
+        .scenario-input input {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        /* 批量分析结果表格样式 */
+        .batch-results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font-size: 14px;
+        }
+
+        .batch-results-table th,
+        .batch-results-table td {
+            padding: 8px 12px;
+            text-align: right;
+            border: 1px solid var(--divider-color);
+        }
+
+        .batch-results-table th {
+            background-color: var(--primary-light-color);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .batch-results-table tr:nth-child(even) {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        .batch-results-table tr:hover {
+            background-color: rgba(66, 133, 244, 0.05);
+        }
+
+        /* 数据可视化图表容器 */
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 24px;
+            border: 1px solid var(--divider-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部区域 -->
+        <div class="md-card">
+            <div class="md-card-header">
+                <div>
+                    <h1 class="md-headline-large">汇丰Trade25港股成交价计算器</h1>
+                    <p class="md-label-large" style="margin: 8px 0 0 0; opacity: 0.7;">版本: 1.6.0 | 最后更新: 2025-07-08 | Material You 设计规范</p>
+                </div>
+                <!-- 主题切换按钮 -->
+                <div class="theme-toggle">
+                    <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleColorMode()" data-tooltip="标准模式">
+                        <i class="material-icons color-mode-icon standard-icon">trending_up</i>
+                        <i class="material-icons color-mode-icon reverse-icon">trending_up</i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="main-grid">
+            <!-- 输入区域 -->
+            <div class="input-section">
+                <h2 class="md-title-large" style="margin-bottom: 24px;">交易信息输入</h2>
+                
+                <!-- 基础信息 -->
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label for="price">股票单价 (港币)</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="price" step="0.001" min="0" oninput="validateAndCalculate()" placeholder="请输入股票单价">
+                            <span class="clear-btn" onclick="clearInput('price')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="quantity">股票数量</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="quantity" min="0" oninput="validateAndCalculate()" placeholder="请输入股票数量">
+                            <span class="clear-btn" onclick="clearInput('quantity')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 目标设置 -->
+                <div style="margin-top: 32px;">
+                    <h3 class="md-title-large" style="margin-bottom: 16px;">目标设置</h3>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label for="profitGoal">赚钱目标 (港币)</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="profitGoal" min="0" oninput="clearAndCalculate('profitGoal')" placeholder="请输入目标盈利金额">
+                                <span class="clear-btn" onclick="clearInput('profitGoal')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+                            </div>
+                            <span id="profitGoalHint" style="display: none; color: var(--md-sys-color-secondary); font-size: 12px; margin-top: 8px; font-weight: 500;"></span>
+                        </div>
+                        <div class="input-group">
+                            <label for="sellPrice">卖出价格 (港币)</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="sellPrice" step="0.001" min="0" oninput="clearAndCalculate('sellPrice')" placeholder="请输入卖出单价">
+                                <span class="clear-btn" onclick="clearInput('sellPrice')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+                            </div>
+                            <span id="sellPriceHint" style="display: none; color: var(--md-sys-color-secondary); font-size: 12px; margin-top: 8px; font-weight: 500;"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <div style="display: flex; gap: 16px; margin-top: 24px;">
+                        <button class="md-button md-button-filled md-button-full" onclick="calculate()">
+                            <i class="material-icons" style="font-size: 18px;">calculate</i>
+                            计算
+                        </button>
+                        <button class="md-button md-button-outlined" onclick="clearRelatedInputs()" style="min-width: 120px;">
+                            <i class="material-icons" style="font-size: 16px;">link_off</i>
+                            重置关联
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 高级功能区域 -->
+                <div class="advanced-section">
+                    <div class="advanced-header" id="advancedHeader">
+                        <div class="advanced-header-title">
+                            <i class="material-icons">expand_more</i>
+                            高级功能
+                        </div>
+                        <span style="font-size: 12px; opacity: 0.7;">批量分析 & 场景分析</span>
+                    </div>
+                    <div id="advancedContent" class="advanced-content collapsed">
+                <!-- 批量计算功能 -->
+                <div class="advanced-section">
+                    <h3>批量分析</h3>
+                    <div class="form-group">
+                        <label for="batchStartPrice">价格区间起始 (港币)</label>
+                        <div class="input-container">
+                            <input type="number" id="batchStartPrice" step="0.001" min="0" placeholder="起始价格">
+                            <span class="clear-btn" onclick="clearInput('batchStartPrice')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="batchEndPrice">价格区间结束 (港币)</label>
+                        <div class="input-container">
+                            <input type="number" id="batchEndPrice" step="0.001" min="0" placeholder="结束价格">
+                            <span class="clear-btn" onclick="clearInput('batchEndPrice')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="batchStep">价格步长 (港币)</label>
+                        <div class="input-container">
+                            <input type="number" id="batchStep" step="0.001" min="0" value="0.5" placeholder="价格间隔">
+                            <span class="clear-btn" onclick="clearInput('batchStep')"><i class="material-icons" style="font-size: 18px;">close</i></span>
+                        </div>
+                    </div>
+                    <button class="secondary-btn" onclick="runBatchAnalysis()">
+                        <i class="material-icons" style="margin-right: 8px; font-size: 18px; vertical-align: middle;">analytics</i>
+                        运行批量分析
+                    </button>
+                </div>
+
+                <!-- 场景分析功能 -->
+                <div class="advanced-section">
+                    <h3>场景分析</h3>
+                    <div class="scenario-container">
+                        <div class="scenario-item">
+                            <label><input type="radio" name="scenario" value="breakEven" checked> 盈亏平衡点分析</label>
+                        </div>
+                        <div class="scenario-item">
+                            <label><input type="radio" name="scenario" value="targetReturn"> 目标收益率分析</label>
+                            <div class="input-container scenario-input">
+                                <input type="number" id="targetReturnRate" step="0.1" min="0" value="5" placeholder="目标收益率 (%)">
+                            </div>
+                        </div>
+                        <div class="scenario-item">
+                            <label><input type="radio" name="scenario" value="stopLoss"> 止损点分析</label>
+                            <div class="input-container scenario-input">
+                                <input type="number" id="stopLossRate" step="0.1" min="0" value="5" placeholder="止损比例 (%)">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="secondary-btn" onclick="runScenarioAnalysis()">
+                        <i class="material-icons" style="margin-right: 8px; font-size: 18px; vertical-align: middle;">assessment</i>
+                        运行场景分析
+                    </button>
+                </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 结果显示区域 -->
+            <div class="results-section">
+                <h2 class="md-title-large" style="margin-bottom: 24px;">计算结果</h2>
+                <div id="result" style="display: none;">
+                    <!-- 结果将在这里显示 -->
+                </div>
+                <div style="text-align: center; color: var(--md-sys-color-on-surface-variant); margin-top: 40px;" id="result-placeholder">
+                    <i class="material-icons" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px;">calculate</i>
+                    <p class="md-label-large">请输入股票信息开始计算</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 新增：数据缓存与性能优化
+        const performanceOptimizations = {
+            cache: new Map(),
+            
+            // 缓存计算结果
+            memoize: function(fn, keyGenerator) {
+                return function(...args) {
+                    const key = keyGenerator ? keyGenerator(...args) : JSON.stringify(args);
+                    if (this.cache.has(key)) {
+                        return this.cache.get(key);
+                    }
+                    const result = fn.apply(this, args);
+                    this.cache.set(key, result);
+                    return result;
+                };
+            },
+            
+            // 清理缓存
+            clearCache: function() {
+                this.cache.clear();
+            },
+            
+            // 节流函数
+            throttle: function(func, limit) {
+                let inThrottle;
+                return function() {
+                    const args = arguments;
+                    const context = this;
+                    if (!inThrottle) {
+                        func.apply(context, args);
+                        inThrottle = true;
+                        setTimeout(() => inThrottle = false, limit);
+                    }
+                }
+            }
+        };
+
+        // 优化的计算函数
+        const optimizedCalculate = performanceOptimizations.memoize(
+            simulateTransaction,
+            (price, quantity, sellPrice) => `${price}-${quantity}-${sellPrice}`
+        );
+
+        // 全局变量存储计算结果
+        let calculationResults = null;
+        // 颜色模式：true表示标准模式，false表示反转模式
+        let colorMode = true;
+        // 缓存常用DOM元素
+        let domElements = {};
+        // 定义常量，避免重复计算
+        const STAMP_DUTY_RATE = 0.0013;
+        const TRADING_FEE_RATE = 0.0000565;
+        const TRADING_LEVY_RATE = 0.00000015;
+        const FRC_LEVY_RATE = 0.00000015;
+        const SETTLEMENT_FEE_RATE = 0.00002;
+        const FIXED_CHARGE = 2;
+        // 所有费率之和，用于计算
+        const TOTAL_RATE = STAMP_DUTY_RATE + TRADING_FEE_RATE + TRADING_LEVY_RATE + FRC_LEVY_RATE + SETTLEMENT_FEE_RATE;
+
+        // 初始化DOM元素是否已完成的标志
+        let domInitialized = false;
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 缓存常用DOM元素
+            domElements = {
+                price: document.getElementById('price'),
+                quantity: document.getElementById('quantity'),
+                profitGoal: document.getElementById('profitGoal'),
+                sellPrice: document.getElementById('sellPrice'),
+                profitGoalHint: document.getElementById('profitGoalHint'),
+                sellPriceHint: document.getElementById('sellPriceHint'),
+                result: document.getElementById('result'),
+                advancedHeader: document.getElementById('advancedHeader'),
+                advancedContent: document.getElementById('advancedContent')
+            };
+
+            // 初始化颜色模式状态
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            
+            // 初始化状态显示
+            updateThemeToggleDisplay();
+            // 初始化输入框颜色
+            updateSellPriceColor();
+
+            // 为输入框添加事件监听器，实现实时颜色更新
+            domElements.sellPrice.addEventListener('input', function() {
+                updateInputColors();
+            });
+
+            domElements.profitGoal.addEventListener('input', function() {
+                updateInputColors();
+            });
+
+            // 添加高级功能区的展开/收起功能
+            if (domElements.advancedHeader && domElements.advancedContent) {
+                domElements.advancedHeader.addEventListener('click', toggleAdvancedFeatures);
+                // 默认收起高级功能区
+                domElements.advancedContent.classList.add('collapsed');
+                console.log('高级功能区事件监听已添加，默认已收起');
+            } else {
+                console.error('找不到高级功能区标题元素');
+            }
+
+            // 为场景分析中的单选按钮添加事件监听
+            const scenarioRadios = document.querySelectorAll('input[name="scenario"]');
+            if (scenarioRadios.length > 0) {
+                scenarioRadios.forEach(radio => {
+                    radio.addEventListener('change', updateScenarioInputs);
+                });
+
+                // 初始化场景输入框状态
+                updateScenarioInputs();
+            }
+
+            // 添加FastClick以消除移动设备上的点击延迟
+            if ('ontouchstart' in window) {
+                // 如果是触摸设备，添加这个class以优化触摸体验
+                document.body.classList.add('touch-device');
+            }
+
+            // 标记DOM初始化已完成
+            domInitialized = true;
+            console.log('DOM初始化完成');
+        });
+
+        // 更新输入框颜色的辅助函数
+        function updateInputColors() {
+            // 只有在已经进行过计算的情况下才更新颜色
+            if (calculationResults) {
+                updateSellPriceColor();
+            }
+        }
+        
+        // 防抖函数，用于限制计算频率
+        function debounce(func, delay) {
+            let timer;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timer);
+                timer = setTimeout(() => func.apply(context, args), delay);
+            }
+        }
+        
+        // 验证输入并计算
+        const validateAndCalculate = debounce(function() {
+            const price = parseFloat(domElements.price.value);
+            const quantity = parseInt(domElements.quantity.value);
+
+            // 只有当价格和数量都有值时才进行计算
+            if (!isNaN(price) && !isNaN(quantity) && price > 0 && quantity > 0) {
+                calculate();
+            } else {
+                domElements.result.style.display = 'none';
+            }
+        }, 300);
+        
+        // 清除输入框内容
+        function clearInput(inputId) {
+            const input = domElements[inputId];
+            if (!input) return;
+
+            input.value = '';
+            input.focus();
+
+            // 重置输入框的颜色类
+            input.className = '';
+
+            // 如果清除的是价格或数量，隐藏结果
+            if (inputId === 'price' || inputId === 'quantity') {
+                domElements.result.style.display = 'none';
+            } else {
+                // 如果清除的是赚钱目标或卖出价格，重新计算
+                validateAndCalculate();
+            }
+
+            // 隐藏相应的提示
+            if (inputId === 'profitGoal') {
+                domElements.profitGoalHint.style.display = 'none';
+            } else if (inputId === 'sellPrice') {
+                domElements.sellPriceHint.style.display = 'none';
+            }
+        }
+        
+        // 清除关联输入框并计算
+        function clearAndCalculate(inputId) {
+            const price = parseFloat(domElements.price.value);
+            const quantity = parseInt(domElements.quantity.value);
+
+            // 只有当价格和数量都有值时才进行处理
+            if (!isNaN(price) && !isNaN(quantity) && price > 0 && quantity > 0) {
+                // 清除另一个关联输入框
+                if (inputId === 'profitGoal') {
+                    domElements.sellPrice.value = '';
+                    domElements.sellPrice.className = ''; // 重置颜色类
+                    domElements.sellPriceHint.style.display = 'none';
+                } else if (inputId === 'sellPrice') {
+                    domElements.profitGoal.value = '';
+                    domElements.profitGoal.className = ''; // 重置颜色类
+                    domElements.profitGoalHint.style.display = 'none';
+                }
+
+                // 计算并更新
+                calculate();
+            } else {
+                domElements.result.style.display = 'none';
+            }
+        }
+        
+        // 清除关联输入框
+        function clearRelatedInputs() {
+            domElements.profitGoal.value = '';
+            domElements.sellPrice.value = '';
+            // 重置输入框的颜色类
+            domElements.profitGoal.className = '';
+            domElements.sellPrice.className = '';
+            domElements.profitGoalHint.style.display = 'none';
+            domElements.sellPriceHint.style.display = 'none';
+
+            // 如果价格和数量都有值，重新计算
+            const price = parseFloat(domElements.price.value);
+            const quantity = parseInt(domElements.quantity.value);
+            if (!isNaN(price) && !isNaN(quantity) && price > 0 && quantity > 0) {
+                calculate();
+            } else {
+                domElements.result.style.display = 'none';
+            }
+        }
+        
+        function calculate() {
+            // 添加输入验证和错误处理
+            try {
+                const price = parseFloat(domElements.price.value);
+                const quantity = parseInt(domElements.quantity.value);
+                const profitGoal = parseFloat(domElements.profitGoal.value);
+                const sellPrice = parseFloat(domElements.sellPrice.value);
+
+                // 验证输入值的有效性
+                if (price <= 0 && !isNaN(price)) {
+                    alert('股票单价必须大于0');
+                    return;
+                }
+                if (quantity <= 0 && !isNaN(quantity)) {
+                    alert('股票数量必须大于0');
+                    return;
+                }
+                if (profitGoal < 0 && !isNaN(profitGoal)) {
+                    alert('赚钱目标不能为负数');
+                    return;
+                }
+                if (sellPrice <= 0 && !isNaN(sellPrice)) {
+                    alert('卖出价格必须大于0');
+                    return;
+                }
+
+                // 使用前面定义的常量，不再重复定义
+
+            if (!price || !quantity) {
+                domElements.result.style.display = 'none';
+                return;
+            }
+
+            const totalValue = price * quantity;
+            
+            // 买入税费计算
+            const stampDuty = totalValue * STAMP_DUTY_RATE;
+            const tradingFee = totalValue * TRADING_FEE_RATE;
+            const tradingLevy = totalValue * TRADING_LEVY_RATE;
+            const frcLevy = totalValue * FRC_LEVY_RATE;
+            const settlementFee = totalValue * SETTLEMENT_FEE_RATE;
+            const charge = FIXED_CHARGE;
+
+            // 总成本
+            const totalCost = totalValue + stampDuty + tradingFee + tradingLevy + frcLevy + settlementFee + charge;
+            const costPerShare = totalCost / quantity;
+
+            let sellTotalValue = 0;
+            let sellStampDuty = 0;
+            let sellTradingFee = 0;
+            let sellTradingLevy = 0;
+            let sellFrcLevy = 0;
+            let sellSettlementFee = 0;
+            let sellCharge = FIXED_CHARGE;
+            let sellTotalCost = 0;
+            let requiredSellPrice = 0;
+            let profit = 0;
+
+            // 处理赚钱目标和卖出价格的逻辑
+            if (profitGoal && !sellPrice) {
+                // 有赚钱目标但没有卖出价格，计算需要的卖出价格
+                sellTotalValue = (totalCost + profitGoal + sellCharge) / (1 - TOTAL_RATE);
+                sellStampDuty = sellTotalValue * STAMP_DUTY_RATE;
+                sellTradingFee = sellTotalValue * TRADING_FEE_RATE;
+                sellTradingLevy = sellTotalValue * TRADING_LEVY_RATE;
+                sellFrcLevy = sellTotalValue * FRC_LEVY_RATE;
+                sellSettlementFee = sellTotalValue * SETTLEMENT_FEE_RATE;
+                sellTotalCost = sellTotalValue - sellStampDuty - sellTradingFee - sellTradingLevy - sellFrcLevy - sellSettlementFee - sellCharge;
+                requiredSellPrice = sellTotalValue / quantity;
+                
+                // 将计算结果反显到卖出价格输入框
+                domElements.sellPrice.value = requiredSellPrice.toFixed(3);
+                domElements.sellPriceHint.textContent = "（根据赚钱目标自动计算）";
+                domElements.sellPriceHint.style.display = 'block';
+                document.getElementById('sellPriceHint').className = colorMode ? 
+                    (requiredSellPrice >= costPerShare ? 'green-hint' : 'red-hint') : 
+                    (requiredSellPrice >= costPerShare ? 'red-hint' : 'green-hint');
+
+                // 给卖出价格输入框添加颜色
+                domElements.sellPrice.className = getColorClass(requiredSellPrice, costPerShare, colorMode);
+
+                // 设置卖出价格输入框颜色
+                domElements.sellPrice.className = getColorClass(requiredSellPrice, costPerShare, colorMode);
+
+                // 隐藏赚钱目标提示
+                domElements.profitGoalHint.style.display = 'none';
+                
+            } else if (sellPrice && !profitGoal) {
+                // 有卖出价格但没有赚钱目标，计算预期盈利
+                sellTotalValue = sellPrice * quantity;
+                sellStampDuty = sellTotalValue * STAMP_DUTY_RATE;
+                sellTradingFee = sellTotalValue * TRADING_FEE_RATE;
+                sellTradingLevy = sellTotalValue * TRADING_LEVY_RATE;
+                sellFrcLevy = sellTotalValue * FRC_LEVY_RATE;
+                sellSettlementFee = sellTotalValue * SETTLEMENT_FEE_RATE;
+                // 卖出后实际收入 = 卖出总价 - 各项费用
+                sellTotalCost = sellTotalValue - sellStampDuty - sellTradingFee - sellTradingLevy - sellFrcLevy - sellSettlementFee - sellCharge;
+                profit = sellTotalCost - totalCost;
+                
+                // 将计算结果反显到赚钱目标输入框
+                domElements.profitGoal.value = profit.toFixed(3);
+                domElements.profitGoalHint.textContent = "（根据卖出价格自动计算）";
+                domElements.profitGoalHint.style.display = 'block';
+
+                // 设置赚钱目标输入框颜色
+                domElements.profitGoal.className = getColorClass(profit, 0, colorMode);
+
+                // 隐藏卖出价格提示
+                domElements.sellPriceHint.style.display = 'none';
+                
+            } else if (sellPrice && profitGoal) {
+                // 两者都有，计算并显示结果
+                sellTotalValue = sellPrice * quantity;
+                sellStampDuty = sellTotalValue * STAMP_DUTY_RATE;
+                sellTradingFee = sellTotalValue * TRADING_FEE_RATE;
+                sellTradingLevy = sellTotalValue * TRADING_LEVY_RATE;
+                sellFrcLevy = sellTotalValue * FRC_LEVY_RATE;
+                sellSettlementFee = sellTotalValue * SETTLEMENT_FEE_RATE;
+                sellTotalCost = sellTotalValue - sellStampDuty - sellTradingFee - sellTradingLevy - sellFrcLevy - sellSettlementFee - sellCharge;
+                profit = sellTotalCost - totalCost;
+                
+                // 隐藏所有提示
+                domElements.profitGoalHint.style.display = 'none';
+                domElements.sellPriceHint.style.display = 'none';
+document.getElementById('profitGoalHint').className = colorMode ? 
+    (profit > 0 ? 'green-hint' : 'red-hint') : 
+    (profit > 0 ? 'red-hint' : 'green-hint');
+                
+            } else {
+                // 两者都没有，隐藏所有提示
+                document.getElementById('profitGoalHint').style.display = 'none';
+                document.getElementById('sellPriceHint').style.display = 'none';
+            }
+
+            // 存储计算结果
+            calculationResults = {
+                totalCost,
+                costPerShare,
+                profitGoal,
+                requiredSellPrice,
+                sellPrice,
+                profit,
+                colorMode,
+                // 添加其他计算结果，以便在displayResults中直接使用
+                totalValue,
+                stampDuty,
+                tradingFee,
+                tradingLevy,
+                frcLevy,
+                settlementFee,
+                charge,
+                sellTotalValue,
+                sellStampDuty,
+                sellTradingFee,
+                sellTradingLevy,
+                sellFrcLevy,
+                sellSettlementFee,
+                sellCharge,
+                sellTotalCost
+            };
+
+    // 显示结果
+    displayResults();
+
+            } catch (error) {
+                console.error('计算出错:', error);
+                alert('计算过程中出现错误，请检查输入数据的有效性。');
+            }
+        }
+        
+        // 显示计算结果（参考原版排版）
+        function displayResults() {
+            if (!calculationResults) return;
+            
+            const { totalCost, costPerShare, profitGoal, requiredSellPrice, sellPrice, profit } = calculationResults;
+            
+            const resultDiv = document.getElementById('result');
+            const placeholderDiv = document.getElementById('result-placeholder');
+            
+            if (placeholderDiv) placeholderDiv.style.display = 'none';
+            resultDiv.style.display = 'block';
+            
+            let resultHTML = `
+                <div class="md-card" style="margin-bottom: 20px;">
+                    <div class="md-card-header">
+                        <h3 class="md-card-title">买入成本计算</h3>
+                    </div>
+                    <div class="md-card-content">
+                        <div class="cost-grid">
+                            <div class="cost-item">
+                                <span>交易金额</span>
+                                <span>${calculationResults.totalValue.toFixed(3)}</span>
+                            </div>
+                            <div class="cost-item">
+                                <span>印花税</span>
+                                <span>${calculationResults.stampDuty.toFixed(3)}</span>
+                            </div>
+                            <div class="cost-item">
+                                <span>交易费</span>
+                                <span>${calculationResults.tradingFee.toFixed(3)}</span>
+                            </div>
+                            <div class="cost-item">
+                                <span>交易征费</span>
+                                <span>${calculationResults.tradingLevy.toFixed(3)}</span>
+                            </div>
+                            <div class="cost-item">
+                                <span>财汇局征费</span>
+                                <span>${calculationResults.frcLevy.toFixed(3)}</span>
+                            </div>
+                            <div class="cost-item">
+                                <span>结算费</span>
+                                <span>${calculationResults.settlementFee.toFixed(3)}</span>
+                            </div>
+                            <div class="cost-item">
+                                <span>手续费</span>
+                                <span>${calculationResults.charge.toFixed(3)}</span>
+                            </div>
+                        </div>
+                        <div class="result-summary">
+                            <div class="result-item total">
+                                <span>总成本</span>
+                                <span>${totalCost.toFixed(3)}</span>
+                            </div>
+                            <div class="result-item total">
+                                <span>每股成本</span>
+                                <span>${costPerShare.toFixed(3)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (profitGoal) {
+                const requiredSellPriceClass = getColorClass(requiredSellPrice || sellPrice, costPerShare, colorMode);
+                
+                resultHTML += `
+                    <div class="md-card" style="margin-bottom: 20px;">
+                        <div class="md-card-header">
+                            <h3 class="md-card-title">赚钱目标计算</h3>
+                        </div>
+                        <div class="md-card-content">
+                            <div class="target-grid">
+                                <div class="target-item">
+                                    <span class="target-label">目标盈利</span>
+                                    <span class="target-value">${profitGoal.toFixed(3)}</span>
+                                </div>
+                                <div class="target-item">
+                                    <span class="target-label">所需卖出总价</span>
+                                    <span class="target-value">${((totalCost + profitGoal + 2) / (1 - 0.0013568)).toFixed(3)}</span>
+                                </div>
+                                <div class="target-item">
+                                    <span class="target-label">所需卖出单价</span>
+                                    <span class="target-value ${requiredSellPriceClass}">${(requiredSellPrice || sellPrice).toFixed(3)}</span>
+                                </div>
+                                <div class="target-item">
+                                    <span class="target-label">与每股成本差额</span>
+                                    <span class="target-value ${requiredSellPriceClass}">
+                                        ${(requiredSellPrice || sellPrice) >= costPerShare ? '+' : '-'}${Math.abs((requiredSellPrice || sellPrice) - costPerShare).toFixed(3)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (sellPrice) {
+                resultHTML += `
+                    <div class="md-card">
+                        <div class="md-card-header">
+                            <h3 class="md-card-title">卖出价格计算</h3>
+                        </div>
+                        <div class="md-card-content">
+                            <div class="cost-grid">
+                                <div class="cost-item">
+                                    <span>卖出金额</span>
+                                    <span>${calculationResults.sellTotalValue.toFixed(3)}</span>
+                                </div>
+                                <div class="cost-item">
+                                    <span>印花税</span>
+                                    <span>${calculationResults.sellStampDuty.toFixed(3)}</span>
+                                </div>
+                                <div class="cost-item">
+                                    <span>交易费</span>
+                                    <span>${calculationResults.sellTradingFee.toFixed(3)}</span>
+                                </div>
+                                <div class="cost-item">
+                                    <span>交易征费</span>
+                                    <span>${calculationResults.sellTradingLevy.toFixed(3)}</span>
+                                </div>
+                                <div class="cost-item">
+                                    <span>财汇局征费</span>
+                                    <span>${calculationResults.sellFrcLevy.toFixed(3)}</span>
+                                </div>
+                                <div class="cost-item">
+                                    <span>结算费</span>
+                                    <span>${calculationResults.sellSettlementFee.toFixed(3)}</span>
+                                </div>
+                                <div class="cost-item">
+                                    <span>手续费</span>
+                                    <span>${calculationResults.sellCharge.toFixed(3)}</span>
+                                </div>
+                            </div>
+                            <div class="result-summary">
+                                <div class="result-item total">
+                                    <span>卖出后实际收入</span>
+                                    <span>${calculationResults.sellTotalCost.toFixed(3)}</span>
+                                </div>
+                                <div class="result-item total">
+                                    <span>盈利</span>
+                                    <span class="${getColorClass(calculationResults.profit, 0, colorMode)}">${calculationResults.profit.toFixed(3)}</span>
+                                </div>
+                                <div class="result-item total">
+                                    <span>每股盈利</span>
+                                    <span class="${getColorClass(calculationResults.profit, 0, colorMode)}">${(calculationResults.profit/parseInt(document.getElementById('quantity').value)).toFixed(3)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            resultDiv.innerHTML = resultHTML;
+            
+            // 更新卖出价格输入框颜色
+            updateSellPriceColor();
+        }
+        
+        // 获取颜色类
+        function getColorClass(value, reference, colorMode) {
+            // 确定比较结果
+            const isPositive = value >= reference;
+            
+            // 根据颜色模式和比较结果返回颜色类
+            if (colorMode) {
+                // 标准模式：高于显示绿色，低于显示红色
+                return isPositive ? 'green-value' : 'red-value';
+            } else {
+                // 反转模式：高于显示红色，低于显示绿色
+                return isPositive ? 'red-value' : 'green-value';
+            }
+        }
+        
+        // 更新卖出价格和赚钱目标输入框的颜色
+        function updateSellPriceColor() {
+            if (!calculationResults) return;
+
+            const { requiredSellPrice, costPerShare, sellPrice, profitGoal, profit } = calculationResults;
+
+            // 更新卖出价格输入框颜色
+            if (domElements.sellPrice && ((!sellPrice && requiredSellPrice) || 
+                (sellPrice && Math.abs(parseFloat(domElements.sellPrice.value) - sellPrice) < 0.001))) {
+                domElements.sellPrice.className = getColorClass(requiredSellPrice || sellPrice, costPerShare, colorMode);
+            } else if (domElements.sellPrice) {
+                domElements.sellPrice.className = '';
+            }
+
+            // 更新赚钱目标输入框颜色
+            if (domElements.profitGoal && (profitGoal || profit)) {
+                domElements.profitGoal.className = getColorClass(profitGoal || profit, 0, colorMode);
+            } else if (domElements.profitGoal) {
+                domElements.profitGoal.className = '';
+            }
+        }
+        
+        // 更新主题切换按钮显示
+        function updateThemeToggleDisplay() {
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            
+            if (!themeToggleBtn) return;
+            
+            if (colorMode) {
+                // 标准模式
+                themeToggleBtn.classList.remove('reverse-mode');
+                themeToggleBtn.setAttribute('data-tooltip', '标准模式：盈利显示绿色');
+            } else {
+                // 反转模式
+                themeToggleBtn.classList.add('reverse-mode');
+                themeToggleBtn.setAttribute('data-tooltip', '反转模式：盈利显示红色');
+            }
+        }
+        
+        // 切换颜色模式
+        function toggleColorMode() {
+            // 切换颜色模式
+            colorMode = !colorMode;
+            
+            // 更新按钮显示
+            updateThemeToggleDisplay();
+
+            // 更新卖出价格和赚钱目标输入框颜色
+            updateSellPriceColor();
+
+            // 如果有计算结果，更新结果中的颜色
+            if (calculationResults) {
+                // 更新存储的颜色模式
+                calculationResults.colorMode = colorMode;
+                displayResults();
+            }
+
+            // 如果有批量分析结果，重新运行批量分析以更新颜色
+            const batchResultsTable = document.querySelector('.batch-results-table');
+            if (batchResultsTable) {
+                runBatchAnalysis();
+            }
+
+            // 如果有场景分析结果，重新运行场景分析以更新颜色
+            const scenarioResult = document.querySelector('.result-section h3[id^="scenario"]');
+            if (scenarioResult) {
+                runScenarioAnalysis();
+            }
+        }
+        
+        // 初始化颜色模式文本和其他功能
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOMContentLoaded 事件触发');
+            updateThemeToggleDisplay();
+
+            console.log('检查高级功能区元素');
+            // 高级功能区的初始化已在前面完成，无需重复
+
+            // 为场景分析中的单选按钮添加事件监听
+            const scenarioRadios = document.querySelectorAll('input[name="scenario"]');
+            if (scenarioRadios.length > 0) {
+                console.log(`找到 ${scenarioRadios.length} 个场景分析单选按钮`);
+                scenarioRadios.forEach(radio => {
+                    radio.addEventListener('change', updateScenarioInputs);
+                });
+
+                // 初始化场景输入框状态
+                updateScenarioInputs();
+            } else {
+                console.log('未找到场景分析单选按钮');
+            }
+        });
+
+        // 添加性能优化代码
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(function() {
+                // 在浏览器空闲时预计算一些可能的常用值
+                const commonQuantities = [100, 200, 500, 1000, 2000];
+                const commonPrices = [10, 20, 50, 100, 200];
+
+                // 在空闲时预热一些计算
+                commonPrices.forEach(price => {
+                    commonQuantities.forEach(quantity => {
+                        const totalValue = price * quantity;
+                        const stampDuty = totalValue * STAMP_DUTY_RATE;
+                        // 其他预计算...
+                    });
+                });
+            });
+        }
+
+        // 高级功能区的展开/收起功能
+        function toggleAdvancedFeatures() {
+            console.log('toggleAdvancedFeatures 被调用');
+            // 确保DOM元素已初始化
+            if (!domInitialized) {
+                console.warn('DOM元素尚未初始化，正在重新获取元素');
+                const advancedContent = document.getElementById('advancedContent');
+                const advancedHeader = document.getElementById('advancedHeader');
+
+                if (!advancedContent || !advancedHeader) {
+                    console.error('无法找到高级功能区元素');
+                    return;
+                }
+
+                handleToggle(advancedContent, advancedHeader);
+            } else {
+                // 使用缓存的DOM元素
+                if (!domElements.advancedContent || !domElements.advancedHeader) {
+                    console.error('缓存中找不到高级功能区元素');
+                    return;
+                }
+
+                handleToggle(domElements.advancedContent, domElements.advancedHeader);
+            }
+
+            function handleToggle(content, header) {
+                console.log('当前显示状态:', content.classList.contains('collapsed') ? 'collapsed' : 'expanded');
+
+                if (content.classList.contains('collapsed')) {
+                    // 展开高级功能区
+                    content.classList.remove('collapsed');
+                    header.classList.add('active');
+                    // 更改图标方向
+                    const icon = header.querySelector('.material-icons');
+                    if (icon) icon.textContent = 'expand_less';
+                } else {
+                    // 收起高级功能区
+                    content.classList.add('collapsed');
+                    header.classList.remove('active');
+                    // 更改图标方向
+                    const icon = header.querySelector('.material-icons');
+                    if (icon) icon.textContent = 'expand_more';
+                }
+            }
+        }
+
+
+        // 更新场景分析输入框的可用状态
+        function updateScenarioInputs() {
+            const selectedScenarioElem = document.querySelector('input[name="scenario"]:checked');
+            if (!selectedScenarioElem) {
+                console.warn('找不到选中的场景分析单选按钮');
+                return;
+            }
+
+            const selectedScenario = selectedScenarioElem.value;
+
+            // 目标收益率输入框
+            const targetReturnRateInput = document.getElementById('targetReturnRate');
+            if (targetReturnRateInput && targetReturnRateInput.parentElement) {
+                targetReturnRateInput.disabled = selectedScenario !== 'targetReturn';
+                targetReturnRateInput.parentElement.style.opacity = selectedScenario !== 'targetReturn' ? '0.5' : '1';
+            }
+
+            // 止损比例输入框
+            const stopLossRateInput = document.getElementById('stopLossRate');
+            if (stopLossRateInput && stopLossRateInput.parentElement) {
+                stopLossRateInput.disabled = selectedScenario !== 'stopLoss';
+                stopLossRateInput.parentElement.style.opacity = selectedScenario !== 'stopLoss' ? '0.5' : '1';
+            }
+        }
+
+        // 运行批量分析
+        function runBatchAnalysis() {
+            const price = parseFloat(domElements.price.value);
+            const quantity = parseInt(domElements.quantity.value);
+            const startPrice = parseFloat(document.getElementById('batchStartPrice').value);
+            const endPrice = parseFloat(document.getElementById('batchEndPrice').value);
+            const step = parseFloat(document.getElementById('batchStep').value);
+
+            // 验证输入
+            if (!price || !quantity || !startPrice || !endPrice || !step || startPrice >= endPrice || step <= 0) {
+                alert('请检查批量分析的输入参数是否正确');
+                return;
+            }
+
+            // 计算结果数组
+            const results = [];
+            let currentPrice = startPrice;
+
+            // 计算每个价格点的结果
+            while (currentPrice <= endPrice) {
+                // 模拟卖出价格为当前价格点的情况
+                const simulatedResult = simulateTransaction(price, quantity, currentPrice);
+                // 计算卖出税费总计
+                const sellTaxFees = simulatedResult.sellTotalValue - simulatedResult.sellTotalCost;
+                results.push({
+                    sellPrice: currentPrice,
+                    profit: simulatedResult.profit,
+                    profitPercentage: (simulatedResult.profit / simulatedResult.totalCost) * 100,
+                    sellTotal: simulatedResult.sellTotalValue,
+                    sellTaxFees: sellTaxFees,
+                    netIncome: simulatedResult.sellTotalCost
+                });
+
+                currentPrice = parseFloat((currentPrice + step).toFixed(3));
+            }
+
+            // 显示批量分析结果
+            displayBatchResults(results);
+        }
+
+        // 模拟交易计算
+        function simulateTransaction(buyPrice, quantity, sellPrice) {
+            const totalValue = buyPrice * quantity;
+
+            // 买入税费计算
+            const stampDuty = totalValue * STAMP_DUTY_RATE;
+            const tradingFee = totalValue * TRADING_FEE_RATE;
+            const tradingLevy = totalValue * TRADING_LEVY_RATE;
+            const frcLevy = totalValue * FRC_LEVY_RATE;
+            const settlementFee = totalValue * SETTLEMENT_FEE_RATE;
+            const charge = FIXED_CHARGE;
+
+            // 总成本
+            const totalCost = totalValue + stampDuty + tradingFee + tradingLevy + frcLevy + settlementFee + charge;
+
+            // 卖出计算
+            const sellTotalValue = sellPrice * quantity;
+            const sellStampDuty = sellTotalValue * STAMP_DUTY_RATE;
+            const sellTradingFee = sellTotalValue * TRADING_FEE_RATE;
+            const sellTradingLevy = sellTotalValue * TRADING_LEVY_RATE;
+            const sellFrcLevy = sellTotalValue * FRC_LEVY_RATE;
+            const sellSettlementFee = sellTotalValue * SETTLEMENT_FEE_RATE;
+            const sellCharge = FIXED_CHARGE;
+
+            // 卖出后实际收入
+            const sellTotalCost = sellTotalValue - sellStampDuty - sellTradingFee - sellTradingLevy - sellFrcLevy - sellSettlementFee - sellCharge;
+
+            // 盈利
+            const profit = sellTotalCost - totalCost;
+
+            return {
+                totalCost,
+                sellTotalValue,
+                sellTotalCost,
+                profit,
+                // 添加详细的税费信息用于后续分析
+                sellStampDuty,
+                sellTradingFee,
+                sellTradingLevy,
+                sellFrcLevy,
+                sellSettlementFee,
+                sellCharge
+            };
+        }
+
+        // 显示批量分析结果
+        function displayBatchResults(results) {
+            // 创建结果区域
+            let resultHTML = `
+                <div class="result-section">
+                    <h3>批量价格分析结果</h3>
+                    <table class="batch-results-table">
+                        <thead>
+                            <tr>
+                                <th>卖出价格 (HK$)</th>
+                                <th>卖出总额 (HK$)</th>
+                                <th>税费总计 (HK$)</th>
+                                <th>实际收入 (HK$)</th>
+                                <th>盈利 (HK$)</th>
+                                <th>收益率 (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            // 添加每行结果
+            results.forEach(result => {
+                // 根据全局颜色模式确定颜色类
+                const profitClass = getColorClass(result.profit, 0, colorMode);
+                resultHTML += `
+                    <tr>
+                        <td>${result.sellPrice.toFixed(3)}</td>
+                        <td>${result.sellTotal.toFixed(2)}</td>
+                        <td>${result.sellTaxFees.toFixed(2)}</td>
+                        <td>${result.netIncome.toFixed(2)}</td>
+                        <td class="${profitClass}">${result.profit.toFixed(2)}</td>
+                        <td class="${profitClass}">${result.profitPercentage.toFixed(2)}%</td>
+                    </tr>
+                `;
+            });
+
+            resultHTML += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            // 创建或更新图表容器
+            resultHTML += `
+                <div class="chart-container" id="batchAnalysisChart">
+                </div>
+            `;
+
+            // 显示结果
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = resultHTML;
+
+            // 在这里可以添加图表绘制代码，如果需要引入图表库
+            // 例如使用Chart.js或其他图表库
+        }
+
+        // 运行场景分析
+        function runScenarioAnalysis() {
+            const price = parseFloat(domElements.price.value);
+            const quantity = parseInt(domElements.quantity.value);
+
+            // 验证基本输入
+            if (!price || !quantity || isNaN(price) || isNaN(quantity) || price <= 0 || quantity <= 0) {
+                alert('请先输入有效的股票单价和数量');
+                return;
+            }
+
+            // 获取选中的场景类型
+            const selectedScenario = document.querySelector('input[name="scenario"]:checked').value;
+            let resultHTML = '';
+
+            // 根据不同场景类型进行分析
+            switch (selectedScenario) {
+                case 'breakEven':
+                    resultHTML = analyzeBreakEven(price, quantity);
+                    break;
+
+                case 'targetReturn':
+                    const targetReturnRate = parseFloat(document.getElementById('targetReturnRate').value);
+                    if (isNaN(targetReturnRate) || targetReturnRate <= 0) {
+                        alert('请输入有效的目标收益率');
+                        return;
+                    }
+                    resultHTML = analyzeTargetReturn(price, quantity, targetReturnRate);
+                    break;
+
+                case 'stopLoss':
+                    const stopLossRate = parseFloat(document.getElementById('stopLossRate').value);
+                    if (isNaN(stopLossRate) || stopLossRate <= 0) {
+                        alert('请输入有效的止损比例');
+                        return;
+                    }
+                    resultHTML = analyzeStopLoss(price, quantity, stopLossRate);
+                    break;
+            }
+
+            // 显示场景分析结果
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = resultHTML;
+        }
+
+        // 盈亏平衡点分析
+        function analyzeBreakEven(price, quantity) {
+            // 计算买入总成本
+            const totalValue = price * quantity;
+            const stampDuty = totalValue * STAMP_DUTY_RATE;
+            const tradingFee = totalValue * TRADING_FEE_RATE;
+            const tradingLevy = totalValue * TRADING_LEVY_RATE;
+            const frcLevy = totalValue * FRC_LEVY_RATE;
+            const settlementFee = totalValue * SETTLEMENT_FEE_RATE;
+            const charge = FIXED_CHARGE;
+            const totalCost = totalValue + stampDuty + tradingFee + tradingLevy + frcLevy + settlementFee + charge;
+
+            // 计算盈亏平衡点的卖出价格
+            // 在卖出价为x时，满足: x*quantity*(1-TOTAL_RATE)-FIXED_CHARGE = totalCost
+            const breakEvenPrice = (totalCost + FIXED_CHARGE) / (quantity * (1 - TOTAL_RATE));
+
+            // 计算盈亏平衡点相对于买入价的百分比变化
+            const priceChangePercent = ((breakEvenPrice - price) / price) * 100;
+
+            return `
+                <div class="result-section">
+                    <h3 id="scenario-breakeven">盈亏平衡点分析</h3>
+                    <div class="result-item">
+                        <span>买入总成本：</span>
+                        <span>HK$ ${totalCost.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>每股成本：</span>
+                        <span>HK$ ${(totalCost / quantity).toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>盈亏平衡卖出价：</span>
+                        <span>HK$ ${breakEvenPrice.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>相对买入价变化：</span>
+                        <span class="${getColorClass(-1 * Math.sign(priceChangePercent), 0, colorMode)}">必须${priceChangePercent >= 0 ? '上涨' : '下跌'} ${Math.abs(priceChangePercent).toFixed(2)}%</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 目标收益率分析
+        function analyzeTargetReturn(price, quantity, targetReturnRate) {
+            // 计算买入总成本
+            const totalValue = price * quantity;
+            const stampDuty = totalValue * STAMP_DUTY_RATE;
+            const tradingFee = totalValue * TRADING_FEE_RATE;
+            const tradingLevy = totalValue * TRADING_LEVY_RATE;
+            const frcLevy = totalValue * FRC_LEVY_RATE;
+            const settlementFee = totalValue * SETTLEMENT_FEE_RATE;
+            const charge = FIXED_CHARGE;
+            const totalCost = totalValue + stampDuty + tradingFee + tradingLevy + frcLevy + settlementFee + charge;
+
+            // 计算目标收益
+            const targetProfit = totalCost * (targetReturnRate / 100);
+
+            // 计算达到目标收益所需的卖出价格
+            const targetSellPrice = (totalCost + targetProfit + FIXED_CHARGE) / (quantity * (1 - TOTAL_RATE));
+
+            // 计算目标价格相对于买入价的百分比变化
+            const priceChangePercent = ((targetSellPrice - price) / price) * 100;
+
+            return `
+                <div class="result-section">
+                    <h3 id="scenario-targetreturn">目标收益率分析 (${targetReturnRate}%)</h3>
+                    <div class="result-item">
+                        <span>买入总成本：</span>
+                        <span>HK$ ${totalCost.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>目标盈利金额：</span>
+                        <span class="${getColorClass(1, 0, colorMode)}">HK$ ${targetProfit.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>达到目标所需卖出价：</span>
+                        <span class="${getColorClass(1, 0, colorMode)}">HK$ ${targetSellPrice.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>相对买入价变化：</span>
+                        <span class="${getColorClass(priceChangePercent, 0, colorMode)}">必须${priceChangePercent >= 0 ? '上涨' : '下跌'} ${Math.abs(priceChangePercent).toFixed(2)}%</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 止损点分析
+        function analyzeStopLoss(price, quantity, stopLossRate) {
+            // 计算买入总成本
+            const totalValue = price * quantity;
+            const stampDuty = totalValue * STAMP_DUTY_RATE;
+            const tradingFee = totalValue * TRADING_FEE_RATE;
+            const tradingLevy = totalValue * TRADING_LEVY_RATE;
+            const frcLevy = totalValue * FRC_LEVY_RATE;
+            const settlementFee = totalValue * SETTLEMENT_FEE_RATE;
+            const charge = FIXED_CHARGE;
+            const totalCost = totalValue + stampDuty + tradingFee + tradingLevy + frcLevy + settlementFee + charge;
+
+            // 计算止损金额
+            const lossAmount = totalCost * (stopLossRate / 100);
+
+            // 计算止损点的卖出价格
+            const stopLossPrice = (totalCost - lossAmount + FIXED_CHARGE) / (quantity * (1 - TOTAL_RATE));
+
+            // 计算止损价格相对于买入价的百分比变化
+            const priceChangePercent = ((stopLossPrice - price) / price) * 100;
+
+            return `
+                <div class="result-section">
+                    <h3 id="scenario-stoploss">止损点分析 (${stopLossRate}%)</h3>
+                    <div class="result-item">
+                        <span>买入总成本：</span>
+                        <span>HK$ ${totalCost.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>可接受亏损金额：</span>
+                        <span class="${getColorClass(-1, 0, colorMode)}">HK$ ${lossAmount.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>止损卖出价：</span>
+                        <span class="${getColorClass(-1, 0, colorMode)}">HK$ ${stopLossPrice.toFixed(3)}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>相对买入价变化：</span>
+                        <span class="${getColorClass(priceChangePercent, 0, colorMode)}">股价${priceChangePercent >= 0 ? '上涨' : '下跌'} ${Math.abs(priceChangePercent).toFixed(2)}%</span>
+                    </div>
+                </div>
+            `;
+        }
+        // 确保页面加载后初始化所有功能
+        window.addEventListener('load', function() {
+            console.log('页面完全加载完成，执行最终初始化');
+
+            // 高级功能区的初始化已在前面完成，无需重复
+        });
+    </script>
+</body>
+</html>

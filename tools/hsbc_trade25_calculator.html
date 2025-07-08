@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>汇丰Trade25港股成交价计算器</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -17,9 +18,47 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            opacity: 1;
+            transform: translateY(0);
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            perspective: 1000px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 输入框焦点样式 */
+        .input-container.focused input {
+            border-color: #db0011;
+            box-shadow: 0 0 0 2px rgba(219, 0, 17, 0.1);
         }
         .form-group {
             margin-bottom: 15px;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+        }
+        .half-width {
+            width: 100%;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+        @media (min-width: 576px) {
+            .half-width {
+                width: 50%;
+            }
+        }
+        .header {
+            position: relative;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .version-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
         }
         label {
             display: block;
@@ -28,6 +67,21 @@
         }
         .input-container {
             position: relative;
+            margin-bottom: 5px;
+        }
+        .input-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background-color: #db0011;
+            transition: width 0.3s ease, left 0.3s ease;
+        }
+        .input-container:focus-within::after {
+            width: 100%;
+            left: 0;
         }
         input[type="number"] {
             width: 100%;
@@ -35,6 +89,22 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 16px;
+            transition: border 0.3s ease, box-shadow 0.3s ease;
+            -webkit-appearance: none; /* 移除iOS默认样式 */
+            appearance: none;
+        }
+        input[type="number"]:focus {
+            border-color: #db0011;
+            box-shadow: 0 0 0 2px rgba(219, 0, 17, 0.1);
+            outline: none;
+        }
+        /* 防止iOS缩放 */
+        @media screen and (-webkit-min-device-pixel-ratio:0) { 
+            select,
+            textarea,
+            input[type="number"] {
+                font-size: 16px;
+            }
         }
         .clear-btn {
             position: absolute;
@@ -62,23 +132,59 @@
             cursor: pointer;
             font-size: 16px;
             width: 100%;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
         }
         button:hover {
             background-color: #b30000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        /* 添加波纹效果 */
+        button::after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.3);
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            transform: scale(0);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s;
+        }
+        button:active::after {
+            transform: scale(3);
+            opacity: 0;
+            transition: 0s;
         }
         /* 新增的重置关联按钮样式 */
         .reset-related-btn {
             background-color: #6c757d;
-            margin-top: 5px;
+            margin-top: 10px;
+            margin-bottom: 10px;
         }
         .reset-related-btn:hover {
             background-color: #5a6268;
+        }
+        @media (max-width: 576px) {
+            .reset-related-btn {
+                font-size: 14px;
+                padding: 10px 15px;
+            }
         }
         .result {
             margin-top: 20px;
             padding: 15px;
             background-color: #f8f9fa;
             border-radius: 4px;
+            transition: opacity 0.3s ease;
+            opacity: 1;
         }
         .result-section {
             margin-bottom: 20px;
@@ -102,6 +208,19 @@
             padding: 5px 0;
             border-bottom: 1px solid #eee;
         }
+        @media (max-width: 576px) {
+            .result-item {
+                flex-direction: column;
+            }
+            .result-item span:first-child {
+                margin-bottom: 3px;
+                font-weight: 500;
+            }
+            .result-item span:last-child {
+                align-self: flex-end;
+                font-weight: 600;
+            }
+        }
         .result-item:last-child {
             border-bottom: none;
             font-weight: bold;
@@ -113,6 +232,73 @@
         .red-value {
             color: red;
             font-weight: bold;
+        }
+        /* 优化买入成本计算布局 */
+        .cost-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        @media (min-width: 576px) {
+            .cost-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        .cost-item {
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .cost-item span:first-child {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .cost-item span:last-child {
+            font-weight: 500;
+            color: #333;
+        }
+        .result-summary {
+            border-top: 1px solid #eee;
+            padding-top: 12px;
+            margin-top: 5px;
+        }
+        .result-summary .result-item.total {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        /* 赚钱目标计算布局 */
+        .target-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        @media (min-width: 576px) {
+            .target-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .target-item {
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .target-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .target-value {
+            font-weight: 600;
+            font-size: 16px;
         }
         /* 开关样式 */
         .toggle-container {
@@ -166,6 +352,185 @@
             transform: translateX(30px);
         }
 
+        /* 高级功能切换样式 */
+        .advanced-toggle {
+            margin: 15px 0;
+            color: #0066cc;
+            font-size: 14px;
+        }
+        .advanced-toggle span {
+            display: inline-block;
+            padding: 8px 12px;
+            background-color: #f0f7ff;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        .advanced-toggle span:hover {
+            background-color: #e0f0ff;
+        }
+        .advanced-toggle span:active {
+            transform: translateY(1px);
+        }
+        .toggle-icon {
+            display: inline-block;
+            transition: transform 0.3s;
+            font-size: 10px;
+            margin-right: 5px;
+        }
+        @media (max-width: 576px) {
+            .advanced-toggle {
+                margin: 20px 0;
+            }
+            .advanced-toggle span {
+                display: block;
+                text-align: center;
+                padding: 10px;
+                font-size: 15px;
+            }
+        }
+
+        /* 右上角按钮容器 */
+        .top-right-buttons {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 小尺寸开关 */
+        .toggle-small {
+            width: 40px;
+            height: 20px;
+        }
+        .toggle-small .slider:before {
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+        }
+        .toggle-small input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* 模式指示器 */
+        .color-toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .mode-indicator {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* 图标按钮样式 */
+        .icon-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: auto;
+            padding: 5px;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .icon-button:hover {
+            background-color: #f0f0f0;
+        }
+        .icon-button:active {
+            transform: scale(0.95);
+        }
+
+        /* 模式图标样式 */
+        .mode-icon {
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+        .standard-mode-icon {
+            color: #2196F3;
+            display: block;
+        }
+        .reverse-mode-icon {
+            color: #FF5252;
+            display: none;
+            transform: rotate(180deg);
+        }
+        .hidden-input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /* 颜色模式切换 */
+        .color-mode-switch {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        /* 红绿显示模式图标的响应式 */
+        @media (max-width: 768px) {
+            .color-mode-switch {
+                position: absolute;
+                top: 5px;
+                right: 5px;
+            }
+            .mode-icon {
+                font-size: 18px;
+            }
+            .icon-button {
+                padding: 4px;
+            }
+        }
+
+        /* 设置计算器为相对定位，以便右上角按钮定位 */
+        .calculator {
+            position: relative;
+        }
+
+        /* 骨架屏加载效果 */
+        @keyframes shimmer {
+            0% {
+                background-position: -468px 0;
+            }
+            100% {
+                background-position: 468px 0;
+            }
+        }
+
+        .result-loading {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .skeleton-line {
+            height: 16px;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #f0f0f0 8%, #e0e0e0 18%, #f0f0f0 33%);
+            background-size: 800px 100px;
+            animation: shimmer 1.5s infinite linear;
+            border-radius: 2px;
+        }
+
+        .skeleton-line.short {
+            width: 60%;
+        }
+
+        .skeleton-line.medium {
+            width: 80%;
+        }
+
+        .skeleton-line.long {
+            width: 100%;
+        }
+
         /* 移动设备适配 */
         @media (max-width: 768px) {
             body {
@@ -173,70 +538,140 @@
             }
             .calculator {
                 padding: 15px;
+                    /* 防止移动设备上的无用动画 */
+                    transition: none;
+                }
+                .result-item {
+                    flex-direction: column;
+                    padding-bottom: 8px;
+                    /* 使用transform而不是margin可以避免重排 */
+                    transform: translateZ(0);
+                }
+                .result-item span:last-child {
+                    margin-top: 3px;
+                    align-self: flex-end;
+                }
+
+                /* 优化移动设备上的交互性能 */
+                input, button, .input-container {
+                    touch-action: manipulation;
             }
-            .result-item {
-                flex-direction: column;
-                padding-bottom: 8px;
+            .top-right-buttons {
+                top: 10px;
+                right: 10px;
             }
-            .result-item span:last-child {
-                margin-top: 3px;
-                align-self: flex-end;
+            /* 移动端表单样式优化 */
+            input[type="number"] {
+                font-size: 16px; /* 防止iOS自动放大 */
+                -webkit-appearance: none; /* 移除iOS默认样式 */
+                padding: 10px 30px 10px 10px; /* 增大点击区域 */
+            }
+            .form-group {
+                margin-bottom: 20px; /* 增大表单组间距 */
+            }
+            .clear-btn {
+                padding: 8px; /* 增大清除按钮点击区域 */
+            }
+            button {
+                padding: 12px 20px; /* 增大按钮尺寸 */
+                font-size: 16px;
+            }
+            /* 高级功能区域调整 */
+            .advanced-toggle {
+                margin: 20px 0;
+                font-size: 16px;
+            }
+            /* 计算结果区域优化 */
+            .result {
+                padding: 15px 10px;
+            }
+            .result-section h3 {
+                font-size: 18px;
             }
         }
     </style>
 </head>
 <body>
     <div class="calculator">
-        <h2>汇丰Trade25港股成交价计算器</h2>
-        <p style="font-size: 12px; color: #666; margin-top: -10px;">版本: 1.1 | 最后更新: 2025-07-02</p>
-        <div class="form-group">
-            <label for="price">股票单价 (港币)</label>
-            <div class="input-container">
-                <input type="number" id="price" step="0.001" min="0" oninput="validateAndCalculate()" placeholder="请输入股票单价">
-                <span class="clear-btn" onclick="clearInput('price')">×</span>
+        <!-- 移除旧的按钮容器，改用新的切换按钮 -->
+
+        <div class="header">
+            <h2>汇丰Trade25港股成交价计算器</h2>
+            <p class="version-info">版本: 1.3.3 | 最后更新: 2025-07-04 | 优化界面交互，使用图标优化红绿显示模式切换</p>
+            <!-- 红绿显示模式切换按钮 -->
+            <div class="color-mode-switch">
+                <button id="colorModeBtn" class="icon-button" onclick="updateColorDisplay()" title="切换红绿显示模式">
+                    <i class="material-icons mode-icon standard-mode-icon">trending_up</i>
+                    <i class="material-icons mode-icon reverse-mode-icon">trending_up</i>
+                    <input type="checkbox" id="colorToggle" class="hidden-input" onchange="updateColorDisplay()">
+                </button>
             </div>
         </div>
-        <div class="form-group">
-            <label for="quantity">股票数量</label>
-            <div class="input-container">
-                <input type="number" id="quantity" min="0" oninput="validateAndCalculate()" placeholder="请输入股票数量">
-                <span class="clear-btn" onclick="clearInput('quantity')">×</span>
+        <div class="form-row">
+            <div class="form-group half-width">
+                <label for="price">股票单价 (港币)</label>
+                <div class="input-container">
+                    <input type="number" id="price" step="0.001" min="0" oninput="validateAndCalculate()" placeholder="请输入股票单价">
+                    <span class="clear-btn" onclick="clearInput('price')">×</span>
+                </div>
+            </div>
+            <div class="form-group half-width">
+                <label for="quantity">股票数量</label>
+                <div class="input-container">
+                    <input type="number" id="quantity" min="0" oninput="validateAndCalculate()" placeholder="请输入股票数量">
+                    <span class="clear-btn" onclick="clearInput('quantity')">×</span>
+                </div>
             </div>
         </div>
-        <div class="form-group">
-            <label for="profitGoal">赚钱目标 (港币)</label>
-            <div class="input-container">
-                <input type="number" id="profitGoal" min="0" oninput="clearAndCalculate('profitGoal')" placeholder="请输入目标盈利金额">
-                <span id="profitGoalHint" style="display: none; color: green; font-size: 14px; margin-top: 5px;"></span>
-                <span class="clear-btn" onclick="clearInput('profitGoal')">×</span>
-            </div>
+        <!-- 高级功能开关 -->
+        <div class="advanced-toggle">
+            <span id="toggleAdvanced" onclick="toggleAdvancedFeatures()" style="cursor: pointer; color: #0066cc;">
+                <i class="toggle-icon">▶</i> 显示高级功能
+            </span>
         </div>
-        <div class="form-group">
-            <label for="sellPrice">卖出价格 (港币)</label>
-            <div class="input-container">
-                <input type="number" id="sellPrice" step="0.001" min="0" oninput="clearAndCalculate('sellPrice')" placeholder="请输入卖出单价">
-                <span id="sellPriceHint" style="display: none; color: green; font-size: 14px; margin-top: 5px;"></span>
-                <span class="clear-btn" onclick="clearInput('sellPrice')">×</span>
+
+        <!-- 高级功能区域（默认隐藏） -->
+        <div id="advancedFeatures" style="display: none;">
+            <div class="form-row">
+                <div class="form-group half-width">
+                    <label for="profitGoal">赚钱目标 (港币)</label>
+                    <div class="input-container">
+                        <input type="number" id="profitGoal" min="0" oninput="clearAndCalculate('profitGoal')" placeholder="请输入目标盈利金额">
+                        <span id="profitGoalHint" style="display: none; color: green; font-size: 14px; margin-top: 5px;"></span>
+                        <span class="clear-btn" onclick="clearInput('profitGoal')">×</span>
+                    </div>
+                </div>
+                <div class="form-group half-width">
+                    <label for="sellPrice">卖出价格 (港币)</label>
+                    <div class="input-container">
+                        <input type="number" id="sellPrice" step="0.001" min="0" oninput="clearAndCalculate('sellPrice')" placeholder="请输入卖出单价">
+                        <span id="sellPriceHint" style="display: none; color: green; font-size: 14px; margin-top: 5px;"></span>
+                        <span class="clear-btn" onclick="clearInput('sellPrice')">×</span>
+                    </div>
+                </div>
             </div>
-            <!-- 新增的重置关联按钮 -->
+            <!-- 重置关联按钮 -->
             <button class="reset-related-btn" onclick="clearRelatedInputs()">
                 重置赚钱目标和卖出价格关联
             </button>
         </div>
         
-        <!-- 红绿显示切换开关 -->
-        <div class="toggle-container">
-            <label class="toggle-label">红绿显示模式：</label>
-            <label class="toggle">
-                <input type="checkbox" id="colorToggle" onchange="updateColorDisplay()">
-                <span class="slider"></span>
-            </label>
-            <span id="colorModeText" style="margin-left: 10px;">标准模式 (盈利/目标单价高于成本显示绿色，低于显示红色)</span>
-        </div>
+        <!-- 移除红绿显示切换开关（现已移到右上角） -->
         
         <button onclick="calculate()">计算</button>
         <div id="result" class="result" style="display: none;">
             <!-- 结果将在这里显示 -->
+        </div>
+
+        <!-- 骨架屏加载效果 -->
+        <div id="result-loading" class="result-loading">
+            <div class="skeleton-line medium"></div>
+            <div class="skeleton-line long"></div>
+            <div class="skeleton-line short"></div>
+            <div class="skeleton-line medium"></div>
+            <div class="skeleton-line long"></div>
+            <div class="skeleton-line short"></div>
+            <div class="skeleton-line medium"></div>
         </div>
     </div>
 
@@ -248,26 +683,73 @@
         // 页面加载时初始化切换开关状态为colorMode的值
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('colorToggle').checked = colorMode;
+            updateColorModeIndicator();
         });
+
+        // 切换高级功能显示/隐藏
+        function toggleAdvancedFeatures() {
+            const advancedFeatures = document.getElementById('advancedFeatures');
+            const toggleText = document.getElementById('toggleAdvanced');
+            const toggleIcon = toggleText.querySelector('.toggle-icon');
+
+            if (advancedFeatures.style.display === 'none') {
+                advancedFeatures.style.display = 'block';
+                toggleText.innerHTML = '<i class="toggle-icon" style="transform: rotate(90deg);">▶</i> 隐藏高级功能';
+            } else {
+                advancedFeatures.style.display = 'none';
+                toggleText.innerHTML = '<i class="toggle-icon">▶</i> 显示高级功能';
+            }
+        }
+
+        // 更新颜色模式指示器和图标显示
+        function updateColorModeIndicator() {
+            // 更新图标显示
+            const standardIcon = document.querySelector('.standard-mode-icon');
+            const reverseIcon = document.querySelector('.reverse-mode-icon');
+
+            if (document.getElementById('colorToggle').checked) {
+                // 标准模式
+                standardIcon.style.display = 'block';
+                reverseIcon.style.display = 'none';
+            } else {
+                // 反转模式
+                standardIcon.style.display = 'none';
+                reverseIcon.style.display = 'block';
+            }
+        };
         
-        // 防抖函数，用于限制计算频率
+        // 防抖函数，用于限制计算频率 - 性能优化版本
         function debounce(func, delay) {
             let timer;
             return function() {
+                if (timer) clearTimeout(timer);
                 const context = this;
                 const args = arguments;
-                clearTimeout(timer);
                 timer = setTimeout(() => func.apply(context, args), delay);
             }
         }
         
-        // 验证输入并计算
+        // 应用状态管理模式来减少DOM查询
+        const appState = {
+            price: 0,
+            quantity: 0,
+            profitGoal: 0,
+            sellPrice: 0,
+            // 更新状态并返回验证结果
+            updateFromInputs: function() {
+                this.price = parseFloat(document.getElementById('price').value);
+                this.quantity = parseInt(document.getElementById('quantity').value);
+                this.profitGoal = parseFloat(document.getElementById('profitGoal').value);
+                this.sellPrice = parseFloat(document.getElementById('sellPrice').value);
+
+                return !isNaN(this.price) && !isNaN(this.quantity) && this.price > 0 && this.quantity > 0;
+            }
+        };
+
+        // 验证输入并计算 - 使用状态管理版本
         const validateAndCalculate = debounce(function() {
-            const price = parseFloat(document.getElementById('price').value);
-            const quantity = parseInt(document.getElementById('quantity').value);
-            
-            // 只有当价格和数量都有值时才进行计算
-            if (!isNaN(price) && !isNaN(quantity) && price > 0 && quantity > 0) {
+            // 更新状态并检查数据有效性
+            if (appState.updateFromInputs()) {
                 calculate();
             } else {
                 document.getElementById('result').style.display = 'none';
@@ -337,12 +819,27 @@
         }
         
         function calculate() {
-            // 添加输入验证和错误处理
-            try {
-                const price = parseFloat(document.getElementById('price').value);
-                const quantity = parseInt(document.getElementById('quantity').value);
-                const profitGoal = parseFloat(document.getElementById('profitGoal').value);
-                const sellPrice = parseFloat(document.getElementById('sellPrice').value);
+            // 获取结果和加载元素的引用 - 缓存DOM查询结果
+            const resultElement = document.getElementById('result');
+            const loadingElement = document.getElementById('result-loading');
+
+            // 显示骨架屏加载效果
+            resultElement.style.display = 'none';
+            loadingElement.style.display = 'block';
+
+            // 使用requestAnimationFrame代替setTimeout，更高效
+            requestAnimationFrame(function() {
+                // 添加输入验证和错误处理
+                try {
+                // 使用状态对象中的值，避免重复DOM查询
+                const { price, quantity, profitGoal, sellPrice } = appState;
+
+                // 如果状态没有更新，先更新一次
+                if (price === 0 && quantity === 0) {
+                    if (!appState.updateFromInputs()) {
+                        throw new Error('输入数据无效');
+                    }
+                }
 
                 // 验证输入值的有效性
                 if (price <= 0 && !isNaN(price)) {
@@ -419,6 +916,9 @@
                 document.getElementById('sellPriceHint').textContent = "（根据赚钱目标自动计算）";
                 document.getElementById('sellPriceHint').style.display = 'block';
                 
+                // 给卖出价格输入框添加颜色
+                document.getElementById('sellPrice').className = getColorClass(requiredSellPrice, costPerShare, colorMode);
+
                 // 隐藏赚钱目标提示
                 document.getElementById('profitGoalHint').style.display = 'none';
                 
@@ -439,6 +939,9 @@
                 document.getElementById('profitGoalHint').textContent = "（根据卖出价格自动计算）";
                 document.getElementById('profitGoalHint').style.display = 'block';
                 
+                // 给赚钱目标输入框添加颜色
+                document.getElementById('profitGoal').className = getColorClass(profit, 0, colorMode);
+
                 // 隐藏卖出价格提示
                 document.getElementById('sellPriceHint').style.display = 'none';
                 
@@ -493,59 +996,79 @@
             // 显示结果
             displayResults();
 
+            // 隐藏骨架屏
+            loadingElement.style.display = 'none';
+
             } catch (error) {
                 console.error('计算出错:', error);
                 alert('计算过程中出现错误，请检查输入数据的有效性。');
+                // 出错时也隐藏骨架屏
+                loadingElement.style.display = 'none';
             }
+            }, 100); // 减少延迟时间，提高响应速度
         }
         
-        // 显示计算结果
+        // 显示计算结果 - 性能优化版本
         function displayResults() {
             if (!calculationResults) return;
-            
-            const { totalCost, costPerShare, profitGoal, requiredSellPrice, sellPrice, profit } = calculationResults;
-            const colorMode = document.getElementById('colorToggle').checked;
+
+            // 使用解构赋值一次性获取所有需要的数据
+            const { 
+                totalCost, costPerShare, profitGoal, requiredSellPrice, sellPrice, profit,
+                totalValue, stampDuty, tradingFee, tradingLevy, frcLevy, settlementFee, charge,
+                sellTotalValue, sellStampDuty, sellTradingFee, sellTradingLevy, sellFrcLevy, 
+                sellSettlementFee, sellCharge, sellTotalCost 
+            } = calculationResults;
+
+            // 缓存DOM查询
+            const colorToggle = document.getElementById('colorToggle');
+            const colorMode = colorToggle.checked;
             
             const resultDiv = document.getElementById('result');
             resultDiv.style.display = 'block';
+            // 构建包含所有计算结果的HTML字符串，减少对calculationResults的重复访问
             let resultHTML = `
                 <div class="result-section">
                     <h3>买入成本计算</h3>
-                    <div class="result-item">
-                        <span>交易金额：</span>
-                        <span>HK$ ${calculationResults.totalValue.toFixed(3)}</span>
+                    <div class="cost-grid">
+                        <div class="cost-item">
+                            <span>交易金额</span>
+                            <span>HK$ ${totalValue.toFixed(3)}</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>印花税</span>
+                            <span>HK$ ${stampDuty.toFixed(3)}</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>交易费</span>
+                            <span>HK$ ${tradingFee.toFixed(3)}</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>交易征费</span>
+                            <span>HK$ ${tradingLevy.toFixed(3)}</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>财汇局征费</span>
+                            <span>HK$ ${frcLevy.toFixed(3)}</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>结算费</span>
+                            <span>HK$ ${settlementFee.toFixed(3)}</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>手续费</span>
+                            <span>HK$ ${charge.toFixed(3)}</span>
+                        </div>
                     </div>
-                    <div class="result-item">
-                        <span>印花税 (0.13%)：</span>
-                        <span>HK$ ${calculationResults.stampDuty.toFixed(3)}</span>
-                    </div>
-                    <div class="result-item">
-                        <span>交易费 (0.00565%)：</span>
-                        <span>HK$ ${calculationResults.tradingFee.toFixed(3)}</span>
-                    </div>
-                    <div class="result-item">
-                        <span>交易征费 (0.00015%)：</span>
-                        <span>HK$ ${calculationResults.tradingLevy.toFixed(3)}</span>
-                    </div>
-                    <div class="result-item">
-                        <span>财汇局交易征费 (0.00015%)：</span>
-                        <span>HK$ ${calculationResults.frcLevy.toFixed(3)}</span>
-                    </div>
-                    <div class="result-item">
-                        <span>结算费 (0.002%)：</span>
-                        <span>HK$ ${calculationResults.settlementFee.toFixed(3)}</span>
-                    </div>
-                    <div class="result-item">
-                        <span>手续费 ：</span>
-                        <span>HK$ ${calculationResults.charge.toFixed(3)}</span>
-                    </div>
-                    <div class="result-item">
-                        <span>总成本：</span>
-                        <span>HK$ ${calculationResults.totalCost.toFixed(3)}</span>
-                    </div>
-                    <div class="result-item">
-                        <span>每股成本：</span>
-                        <span>HK$ ${costPerShare.toFixed(3)}</span>
+                    <div class="result-summary">
+                        <div class="result-item total">
+                            <span>总成本：</span>
+                            <span>HK$ ${totalCost.toFixed(3)}</span>
+                        </div>
+                        <div class="result-item total">
+                            <span>每股成本：</span>
+                            <span>HK$ ${costPerShare.toFixed(3)}</span>
+                        </div>
                     </div>
                 </div>
             `;
@@ -557,23 +1080,25 @@
                 resultHTML += `
                     <div class="result-section">
                         <h3>赚钱目标计算</h3>
-                        <div class="result-item">
-                            <span>目标盈利：</span>
-                            <span>HK$ ${profitGoal.toFixed(3)}</span>
-                        </div>
-                        <div class="result-item">
-                            <span>达到赚钱目标所需卖出总价：</span>
-                            <span>HK$ ${((totalCost + profitGoal + 2) / (1 - 0.0013568)).toFixed(3)}</span>
-                        </div>
-                        <div class="result-item">
-                            <span>达到赚钱目标所需卖出单价：</span>
-                            <span class="${requiredSellPriceClass}">HK$ ${(requiredSellPrice || sellPrice).toFixed(3)}</span>
-                        </div>
-                        <div class="result-item">
-                            <span>与每股成本比较：</span>
-                            <span class="${requiredSellPriceClass}">
-                                ${(requiredSellPrice || sellPrice) >= costPerShare ? '+' : '-'}HK$ ${Math.abs((requiredSellPrice || sellPrice) - costPerShare).toFixed(3)}
-                            </span>
+                        <div class="target-grid">
+                            <div class="target-item">
+                                <span class="target-label">目标盈利</span>
+                                <span class="target-value">HK$ ${profitGoal.toFixed(3)}</span>
+                            </div>
+                            <div class="target-item">
+                                <span class="target-label">所需卖出总价</span>
+                                <span class="target-value">HK$ ${((totalCost + profitGoal + 2) / (1 - 0.0013568)).toFixed(3)}</span>
+                            </div>
+                            <div class="target-item">
+                                <span class="target-label">所需卖出单价</span>
+                                <span class="target-value ${requiredSellPriceClass}">HK$ ${(requiredSellPrice || sellPrice).toFixed(3)}</span>
+                            </div>
+                            <div class="target-item">
+                                <span class="target-label">与每股成本差额</span>
+                                <span class="target-value ${requiredSellPriceClass}">
+                                    ${(requiredSellPrice || sellPrice) >= costPerShare ? '+' : '-'}HK$ ${Math.abs((requiredSellPrice || sellPrice) - costPerShare).toFixed(3)}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -583,45 +1108,49 @@
                 resultHTML += `
                     <div class="result-section">
                         <h3>卖出价格计算</h3>
-                        <div class="result-item">
-                            <span>卖出交易金额：</span>
-                            <span>HK$ ${calculationResults.sellTotalValue.toFixed(3)}</span>
+                        <div class="cost-grid">
+                            <div class="cost-item">
+                                <span>卖出金额</span>
+                                <span>HK$ ${sellTotalValue.toFixed(3)}</span>
+                            </div>
+                            <div class="cost-item">
+                                <span>印花税</span>
+                                <span>HK$ ${sellStampDuty.toFixed(3)}</span>
+                            </div>
+                            <div class="cost-item">
+                                <span>交易费</span>
+                                <span>HK$ ${sellTradingFee.toFixed(3)}</span>
+                            </div>
+                            <div class="cost-item">
+                                <span>交易征费</span>
+                                <span>HK$ ${sellTradingLevy.toFixed(3)}</span>
+                            </div>
+                            <div class="cost-item">
+                                <span>财汇局征费</span>
+                                <span>HK$ ${sellFrcLevy.toFixed(3)}</span>
+                            </div>
+                            <div class="cost-item">
+                                <span>结算费</span>
+                                <span>HK$ ${sellSettlementFee.toFixed(3)}</span>
+                            </div>
+                            <div class="cost-item">
+                                <span>手续费</span>
+                                <span>HK$ ${sellCharge.toFixed(3)}</span>
+                            </div>
                         </div>
-                        <div class="result-item">
-                            <span>卖出印花税 (0.13%)：</span>
-                            <span>HK$ ${calculationResults.sellStampDuty.toFixed(3)}</span>
-                        </div>
-                        <div class="result-item">
-                            <span>卖出交易费 (0.00565%)：</span>
-                            <span>HK$ ${calculationResults.sellTradingFee.toFixed(3)}</span>
-                        </div>
-                        <div class="result-item">
-                            <span>卖出交易征费 (0.00015%)：</span>
-                            <span>HK$ ${calculationResults.sellTradingLevy.toFixed(3)}</span>
-                        </div>
-                        <div class="result-item">
-                            <span>卖出财汇局交易征费 (0.00015%)：</span>
-                            <span>HK$ ${calculationResults.sellFrcLevy.toFixed(3)}</span>
-                        </div>
-                        <div class="result-item">
-                            <span>卖出结算费 (0.002%)：</span>
-                            <span>HK$ ${calculationResults.sellSettlementFee.toFixed(3)}</span>
-                        </div>
-                        <div class="result-item">
-                            <span>卖出手续费 ：</span>
-                            <span>HK$ ${calculationResults.sellCharge.toFixed(3)}</span>
-                        </div>
-                        <div class="result-item">
-                            <span>卖出后实际收入：</span>
-                            <span>HK$ ${calculationResults.sellTotalCost.toFixed(3)}</span>
-                        </div>
-                        <div class="result-item">
-                            <span>盈利：</span>
-                            <span class="${getColorClass(calculationResults.profit, 0, colorMode)}">HK$ ${calculationResults.profit.toFixed(3)}</span>
-                        </div>
-                        <div class="result-item">
-                            <span>每股盈利：</span>
-                            <span class="${getColorClass(calculationResults.profit, 0, colorMode)}">HK$ ${(calculationResults.profit/parseInt(document.getElementById('quantity').value)).toFixed(3)}</span>
+                        <div class="result-summary">
+                            <div class="result-item total">
+                                <span>卖出后实际收入：</span>
+                                <span>HK$ ${sellTotalCost.toFixed(3)}</span>
+                            </div>
+                            <div class="result-item total">
+                                <span>盈利：</span>
+                                <span class="${getColorClass(profit, 0, colorMode)}">HK$ ${profit.toFixed(3)}</span>
+                            </div>
+                            <div class="result-item total">
+                                <span>每股盈利：</span>
+                                <span class="${getColorClass(profit, 0, colorMode)}">HK$ ${(profit/parseInt(document.getElementById('quantity').value)).toFixed(3)}</span>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -648,48 +1177,140 @@
             }
         }
         
-        // 更新卖出价格输入框的颜色
+        // 更新卖出价格和赚钱目标输入框的颜色 - 性能优化版本
         function updateSellPriceColor() {
             if (!calculationResults) return;
-            
-            const { requiredSellPrice, costPerShare, sellPrice } = calculationResults;
-            const colorMode = document.getElementById('colorToggle').checked;
+
+            // 解构赋值获取需要的数据
+            const { requiredSellPrice, costPerShare, sellPrice, profit, profitGoal } = calculationResults;
+
+            // 缓存DOM元素引用
+            const colorToggleElement = document.getElementById('colorToggle');
             const sellPriceInput = document.getElementById('sellPrice');
-            
-            // 如果卖出价格是自动计算的或者用户输入了卖出价格
+            const profitGoalInput = document.getElementById('profitGoal');
+            const colorMode = colorToggleElement.checked;
+
+            // 获取当前输入值，避免重复DOM访问
+            const sellPriceValue = sellPriceInput.value;
+            const profitGoalValue = profitGoalInput.value;
+
+            // 更新卖出价格输入框颜色
             if ((!sellPrice && requiredSellPrice) || 
-                (sellPrice && Math.abs(parseFloat(document.getElementById('sellPrice').value) - sellPrice) < 0.001)) {
+                (sellPrice && Math.abs(parseFloat(sellPriceValue) - sellPrice) < 0.001)) {
                 sellPriceInput.className = getColorClass(requiredSellPrice || sellPrice, costPerShare, colorMode);
             } else {
                 sellPriceInput.className = '';
             }
-        }
-        
-        // 更新颜色显示
-        function updateColorDisplay() {
-            // 将全局变量colorMode更新为当前开关状态
-            colorMode = document.getElementById('colorToggle').checked;
-            const colorModeText = document.getElementById('colorModeText');
 
-            // 更新模式文本
-            colorModeText.textContent = colorMode ? 
-                "标准模式 (盈利/目标单价高于成本显示绿色，低于显示红色)" : 
-                "反转模式 (盈利/目标单价高于成本显示红色，低于显示绿色)";
-
-            // 更新卖出价格输入框颜色
-            updateSellPriceColor();
-
-            // 如果有计算结果，更新结果中的颜色
-            if (calculationResults) {
-                // 更新存储的颜色模式
-                calculationResults.colorMode = colorMode;
-                displayResults();
+            // 更新赚钱目标输入框颜色
+            if (profitGoal && profitGoalValue) {
+                profitGoalInput.className = getColorClass(profitGoal, 0, colorMode);
+            } else {
+                profitGoalInput.className = '';
             }
         }
         
-        // 初始化颜色模式文本
+        // 更新颜色显示 - 性能优化版本
+        function updateColorDisplay() {
+            // 缓存DOM元素查询
+            const colorToggleElement = document.getElementById('colorToggle');
+            const sellPriceElement = document.getElementById('sellPrice');
+            const profitGoalElement = document.getElementById('profitGoal');
+            const colorModeBtnElement = document.getElementById('colorModeBtn');
+
+            // 将全局变量colorMode更新为当前开关状态
+            colorMode = colorToggleElement.checked;
+
+            // 更新模式指示图标
+            updateColorModeIndicator();
+
+            // 更新输入框颜色
+            updateSellPriceColor();
+
+            // 获取当前输入值，避免重复DOM访问
+            const sellPriceValue = sellPriceElement.value;
+            const profitGoalValue = profitGoalElement.value;
+
+            // 如果有值，则应用相应的颜色类
+            if (calculationResults) {
+                if (sellPrice) {
+                    document.getElementById('sellPrice').className = getColorClass(
+                        parseFloat(sellPrice), 
+                        calculationResults.costPerShare, 
+                        colorMode
+                    );
+                }
+
+                if (profitGoal) {
+                    document.getElementById('profitGoal').className = getColorClass(
+                        parseFloat(profitGoal), 
+                        0, 
+                        colorMode
+                    );
+                }
+
+                // 更新存储的颜色模式并重新显示结果
+                calculationResults.colorMode = colorMode;
+                displayResults();
+            }
+
+            // 切换按钮样式
+            const colorModeBtn = document.getElementById('colorModeBtn');
+            if (colorMode) {
+                colorModeBtn.style.backgroundColor = '#e6f7ff';
+            } else {
+                colorModeBtn.style.backgroundColor = '#ffe6e6';
+            }
+        }
+        
+        // 初始化页面和颜色模式
         document.addEventListener('DOMContentLoaded', function() {
+            // 更新颜色显示模式
             updateColorDisplay();
+
+            // 添加页面加载动画
+            const calculator = document.querySelector('.calculator');
+            calculator.style.opacity = '0';
+            calculator.style.transform = 'translateY(20px)';
+
+            // 添加性能优化：使用passive事件监听器来提高滚动性能
+            window.addEventListener('scroll', function() {}, { passive: true });
+
+            // 使用IntersectionObserver实现延迟加载
+            if ('IntersectionObserver' in window) {
+                const resultElement = document.getElementById('result');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            // 一旦元素可见，就不再需要观察它
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                // 开始观察结果区域
+                if (resultElement) {
+                    observer.observe(resultElement);
+                }
+            }
+
+            setTimeout(function() {
+                calculator.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                calculator.style.opacity = '1';
+                calculator.style.transform = 'translateY(0)';
+            }, 100);
+
+            // 为输入框添加焦点样式
+            const inputs = document.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.classList.add('focused');
+                });
+                input.addEventListener('blur', function() {
+                    this.parentElement.classList.remove('focused');
+                });
+            });
         });
     </script>
 </body>

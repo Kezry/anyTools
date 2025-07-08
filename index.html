@@ -3,33 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工具列表</title>
+    <title>工具列表 - Material You 设计</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
 
-    <!-- Tailwind 配置 -->
+    <!-- Material You Tailwind 配置 -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '#165DFF',
-                        secondary: '#36D399',
+                        // Material You Color System
+                        'md-primary': '#6750A4',
+                        'md-on-primary': '#FFFFFF',
+                        'md-primary-container': '#EADDFF',
+                        'md-on-primary-container': '#21005D',
+                        
+                        'md-secondary': '#625B71',
+                        'md-on-secondary': '#FFFFFF',
+                        'md-secondary-container': '#E8DEF8',
+                        'md-on-secondary-container': '#1D192B',
+                        
+                        'md-background': '#FFFBFE',
+                        'md-on-background': '#1C1B1F',
+                        'md-surface': '#FFFBFE',
+                        'md-on-surface': '#1C1B1F',
+                        'md-surface-variant': '#E7E0EC',
+                        'md-on-surface-variant': '#49454F',
+                        'md-outline': '#79747E',
+                        'md-outline-variant': '#CAC4D0',
+                        
+                        // Legacy mappings for backward compatibility
+                        primary: '#6750A4',
+                        secondary: '#625B71',
                         neutral: {
-                            100: '#F9FAFB',
-                            200: '#F3F4F6',
-                            300: '#E5E7EB',
-                            700: '#374151',
-                            800: '#1F2937',
-                            900: '#111827'
+                            100: '#E7E0EC',
+                            200: '#E7E0EC',
+                            300: '#CAC4D0',
+                            700: '#21005D',
+                            800: '#1D192B',
+                            900: '#1C1B1F'
                         }
                     },
                     fontFamily: {
-                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                        roboto: ['Roboto', 'system-ui', 'sans-serif'],
+                        inter: ['Roboto', 'system-ui', 'sans-serif'],
                     },
                     boxShadow: {
-                        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                        'md-1': '0px 2px 1px -1px rgba(0, 0, 0, 0.2), 0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 3px 0px rgba(0, 0, 0, 0.12)',
+                        'md-2': '0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12)',
+                        'card': '0px 2px 1px -1px rgba(0, 0, 0, 0.2), 0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 3px 0px rgba(0, 0, 0, 0.12)',
+                        'card-hover': '0px 3px 3px -2px rgba(0, 0, 0, 0.2), 0px 3px 4px 0px rgba(0, 0, 0, 0.14), 0px 1px 8px 0px rgba(0, 0, 0, 0.12)',
                     }
                 },
             }
@@ -54,21 +79,21 @@
         }
     </style>
 </head>
-<body class="font-inter bg-neutral-100 min-h-screen">
+<body class="font-roboto bg-md-background min-h-screen">
     <!-- 顶部导航栏 -->
-    <header class="bg-white shadow-md sticky top-0 z-50">
+    <header class="bg-md-surface shadow-md-1 sticky top-0 z-50 border-b border-md-outline-variant">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-2">
-                <i class="fa fa-cogs text-primary text-2xl"></i>
-                <h1 class="text-xl md:text-2xl font-bold text-neutral-800">工具中心</h1>
+                <i class="fa fa-cogs text-md-primary text-2xl"></i>
+                <h1 class="text-xl md:text-2xl font-bold text-md-on-surface">工具中心</h1>
             </div>
             <div class="hidden md:flex items-center space-x-6">
-                <a href="#" class="text-neutral-700 hover:text-primary transition-colors">首页</a>
-                <a href="#" class="text-neutral-700 hover:text-primary transition-colors">分类</a>
-                <a href="#" class="text-neutral-700 hover:text-primary transition-colors">收藏</a>
-                <a href="#" class="text-neutral-700 hover:text-primary transition-colors">关于</a>
+                <a href="#" class="text-md-on-surface-variant hover:text-md-primary transition-colors">首页</a>
+                <a href="#" class="text-md-on-surface-variant hover:text-md-primary transition-colors">分类</a>
+                <a href="#" class="text-md-on-surface-variant hover:text-md-primary transition-colors">收藏</a>
+                <a href="#" class="text-md-on-surface-variant hover:text-md-primary transition-colors">关于</a>
             </div>
-            <button class="md:hidden text-neutral-700">
+            <button class="md:hidden text-md-on-surface-variant">
                 <i class="fa fa-bars text-xl"></i>
             </button>
         </div>
@@ -77,9 +102,9 @@
     <!-- 主内容区 -->
     <main class="container mx-auto px-4 py-8">
         <div class="mb-8 text-center">
-            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-neutral-800 mb-2">实用工具集合</h2>
-            <p class="text-neutral-600 max-w-2xl mx-auto">
-                收集各类实用工具，提升工作效率与生活品质
+            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-md-on-surface mb-2">实用工具集合</h2>
+            <p class="text-md-on-surface-variant max-w-2xl mx-auto">
+                Material You 设计规范，收集各类实用工具，提升工作效率与生活品质。支持直接访问，无需服务器。
             </p>
         </div>
 
@@ -185,13 +210,41 @@
             });
         }
 
-        // 初始化页面
-        async function init() {
-            try {
-                // 使用绝对URL加载配置文件（需本地服务器支持）
-                const response = await fetch('./tools/config.json');
-                toolsData = await response.json();
+        // 工具配置数据（直接嵌入，避免fetch限制）
+        toolsData = {
+            "hsbc_trade25_calculator": {
+                "name": "hsbc_trade25_calculator.html",
+                "title": "汇丰Trade25港股成交价计算器",
+                "description": "专业的港股交易成交价计算工具，支持费用计算和盈利分析",
+                "category": "效率工具",
+                "icon": "calculator"
+            },
+            "hsbc_trade25_calculator_v1.1": {
+                "name": "hsbc_trade25_calculator_v1.1.html",
+                "title": "汇丰Trade25港股成交价计算器 增强版",
+                "description": "Material Design风格，包含高级功能如批量分析和场景分析",
+                "category": "效率工具",
+                "icon": "calculator"
+            },
+            "hsbc_trade25_calculator_v1.2": {
+                "name": "hsbc_trade25_calculator_v1.2.html",
+                "title": "汇丰Trade25港股成交价计算器 增强版new",
+                "description": "Material Design风格，包含高级功能如批量分析和场景分析",
+                "category": "效率工具",
+                "icon": "calculator"
+            },
+            "bean-sql-change": {
+                "name": "bean-sql-change.html",
+                "title": "字段名转换工具 v2.0",
+                "description": "智能多模式字段名转换，支持实时验证和性能优化",
+                "category": "开发工具",
+                "icon": "exchange-alt"
+            }
+        };
 
+        // 初始化页面
+        function init() {
+            try {
                 // 将对象转换为数组以便于处理
                 toolsArray = Object.keys(toolsData).map(key => {
                     const tool = toolsData[key];
@@ -205,13 +258,15 @@
                 // 默认显示全部工具
                 filterTools('all');
 
+                console.log('工具列表加载成功，共', toolsArray.length, '个工具');
+
             } catch (error) {
-                console.error('获取工具数据失败:', error);
+                console.error('初始化失败:', error);
                 document.getElementById('tools-container').innerHTML = `
                     <div class="col-span-full text-center py-12">
                         <i class="fa fa-exclamation-triangle text-red-500 text-5xl mb-4"></i>
-                        <h3 class="text-xl font-semibold text-neutral-800 mb-2">加载工具列表失败</h3>
-                        <p class="text-neutral-600">无法读取配置文件，请检查网络连接或稍后重试</p>
+                        <h3 class="text-xl font-semibold text-neutral-800 mb-2">初始化失败</h3>
+                        <p class="text-neutral-600">页面初始化时出现错误，请刷新页面重试</p>
                     </div>
                 `;
             }
