@@ -114,7 +114,7 @@
                     <div class="relative">
                         <input type="number" id="intervalInput" min="50" max="1000" step="10" 
                             class="w-full px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all duration-200"
-                            value="2000">
+                            value="500">
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                             <i class="fa fa-clock-o text-neutral-400"></i>
                         </div>
@@ -503,68 +503,24 @@
             }, timeout);
             
             try {
-                // 检查是否需要使用代理
-                let requestUrl = url;
-                let useProxy = false;
-                
-                // 如果是http地址且当前页面是https，使用CORS代理
-                if (url.startsWith('http://') && window.location.protocol === 'https:') {
-                    requestUrl = `https://cors-anywhere.herokuapp.com/${url}`;
-                    useProxy = true;
-                    console.log('Using CORS proxy for:', url);
-                }
-                
-                // 执行请求
-                let response;
-                try {
-                    response = await fetch(requestUrl, { 
-                        signal,
-                        mode: 'cors',
-                        cache: 'no-cache',
-                        headers: useProxy ? {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        } : {}
-                    });
-                } catch (corsError) {
-                    console.log('CORS request failed:', corsError);
-                    
-                    // 如果代理也失败，尝试其他代理服务
-                    if (useProxy) {
-                        console.log('Trying alternative proxy...');
-                        requestUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-                        response = await fetch(requestUrl, { 
-                            signal,
-                            mode: 'cors',
-                            cache: 'no-cache'
-                        });
-                    } else {
-                        // 非代理情况下尝试no-cors
-                        response = await fetch(url, { 
-                            signal,
-                            mode: 'no-cors',
-                            cache: 'no-cache'
-                        });
-                    }
-                }
+                // 对于跨域请求，直接使用no-cors模式进行连通性测试
+                const response = await fetch(url, { 
+                    signal,
+                    mode: 'no-cors',
+                    cache: 'no-cache'
+                });
                 clearTimeout(timeoutId);
                 
                 // 计算响应时间
                 responseTime = performance.now() - startTime;
                 
-                // 解析响应 - 不管HTTP状态码，只要有响应就算成功
-                try {
-                    // 检查是否使用了allorigins代理
-                    if (requestUrl.includes('api.allorigins.win')) {
-                        const proxyResponse = await response.json();
-                        responseData = `代理响应: ${proxyResponse.status_code || 'success'}`;
-                        if (proxyResponse.contents) {
-                            responseData += ` - 内容长度: ${proxyResponse.contents.length}字符`;
-                        }
-                    }
-                    // 检查是否是no-cors模式的opaque响应
-                    else if (response.type === 'opaque') {
-                        responseData = `服务器响应 (no-cors模式)`;
-                    } else {
+                // no-cors模式下只能判断连通性，无法读取具体内容
+                // 但这对于ms级别的连通性测试已经足够
+                if (response.type === 'opaque') {
+                    responseData = `连通性正常 (${Math.round(responseTime)}ms)`;
+                } else {
+                    // 同域请求可以读取内容
+                    try {
                         const contentType = response.headers.get('content-type');
                         if (contentType && contentType.includes('application/json')) {
                             responseData = await response.json();
@@ -574,26 +530,20 @@
                                 `${text.substring(0, 200)}...` : 
                                 text;
                         }
-                    }
-                } catch (parseError) {
-                    // 如果解析失败，使用状态信息
-                    if (response.type === 'opaque') {
-                        responseData = `服务器响应 (opaque)`;
-                    } else {
+                    } catch (parseError) {
                         responseData = `HTTP ${response.status} ${response.statusText}`;
                     }
                 }
                 
-                // 记录成功请求 - 只要不超时就算成功
+                // 记录成功请求 - 能收到响应就算成功
                 addRequestRecord({
                     timestamp: new Date().toISOString(),
                     url,
                     responseTime: Math.round(responseTime),
                     success: true,
                     data: responseData,
-                    httpStatus: response.status || 'unknown',
-                    responseType: response.type,
-                    usedProxy: useProxy
+                    httpStatus: response.status || 'N/A',
+                    responseType: response.type
                 });
             } catch (err) {
                 clearTimeout(timeoutId);
