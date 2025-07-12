@@ -503,22 +503,48 @@
             }, timeout);
             
             try {
-                // 执行请求 - 先尝试CORS，失败后尝试no-cors
+                // 检查是否需要使用代理
+                let requestUrl = url;
+                let useProxy = false;
+                
+                // 如果是http地址且当前页面是https，使用CORS代理
+                if (url.startsWith('http://') && window.location.protocol === 'https:') {
+                    requestUrl = `https://cors-anywhere.herokuapp.com/${url}`;
+                    useProxy = true;
+                    console.log('Using CORS proxy for:', url);
+                }
+                
+                // 执行请求
                 let response;
                 try {
-                    response = await fetch(url, { 
+                    response = await fetch(requestUrl, { 
                         signal,
                         mode: 'cors',
-                        cache: 'no-cache'
+                        cache: 'no-cache',
+                        headers: useProxy ? {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        } : {}
                     });
                 } catch (corsError) {
-                    console.log('CORS failed, trying no-cors mode:', corsError);
-                    // CORS失败，尝试no-cors模式
-                    response = await fetch(url, { 
-                        signal,
-                        mode: 'no-cors',
-                        cache: 'no-cache'
-                    });
+                    console.log('CORS request failed:', corsError);
+                    
+                    // 如果代理也失败，尝试其他代理服务
+                    if (useProxy) {
+                        console.log('Trying alternative proxy...');
+                        requestUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                        response = await fetch(requestUrl, { 
+                            signal,
+                            mode: 'cors',
+                            cache: 'no-cache'
+                        });
+                    } else {
+                        // 非代理情况下尝试no-cors
+                        response = await fetch(url, { 
+                            signal,
+                            mode: 'no-cors',
+                            cache: 'no-cache'
+                        });
+                    }
                 }
                 clearTimeout(timeoutId);
                 
@@ -527,16 +553,26 @@
                 
                 // 解析响应 - 不管HTTP状态码，只要有响应就算成功
                 try {
+                    // 检查是否使用了allorigins代理
+                    if (requestUrl.includes('api.allorigins.win')) {
+                        const proxyResponse = await response.json();
+                        responseData = `代理响应: ${proxyResponse.status_code || 'success'}`;
+                        if (proxyResponse.contents) {
+                            responseData += ` - 内容长度: ${proxyResponse.contents.length}字符`;
+                        }
+                    }
                     // 检查是否是no-cors模式的opaque响应
-                    if (response.type === 'opaque') {
-                        // no-cors模式下无法读取响应内容，但能确认服务器响应了
+                    else if (response.type === 'opaque') {
                         responseData = `服务器响应 (no-cors模式)`;
                     } else {
                         const contentType = response.headers.get('content-type');
                         if (contentType && contentType.includes('application/json')) {
                             responseData = await response.json();
                         } else {
-                            responseData = await response.text();
+                            const text = await response.text();
+                            responseData = text.length > 200 ? 
+                                `${text.substring(0, 200)}...` : 
+                                text;
                         }
                     }
                 } catch (parseError) {
@@ -556,7 +592,8 @@
                     success: true,
                     data: responseData,
                     httpStatus: response.status || 'unknown',
-                    responseType: response.type
+                    responseType: response.type,
+                    usedProxy: useProxy
                 });
             } catch (err) {
                 clearTimeout(timeoutId);
