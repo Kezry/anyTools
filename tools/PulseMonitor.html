@@ -103,7 +103,7 @@
                     <div class="relative">
                         <input type="url" id="urlInput" placeholder="https://example.com/api/data" 
                             class="w-full px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all duration-200"
-                            value="https://api.example.com/data">
+                            value="https://httpbin.org/delay/1">
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                             <i class="fa fa-link text-neutral-400"></i>
                         </div>
@@ -114,7 +114,7 @@
                     <div class="relative">
                         <input type="number" id="intervalInput" min="50" max="1000" step="10" 
                             class="w-full px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all duration-200"
-                            value="100">
+                            value="2000">
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                             <i class="fa fa-clock-o text-neutral-400"></i>
                         </div>
@@ -125,7 +125,7 @@
                     <div class="relative">
                         <input type="number" id="timeoutInput" min="20" max="500" step="10" 
                             class="w-full px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all duration-200"
-                            value="80">
+                            value="5000">
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                             <i class="fa fa-exclamation-triangle text-neutral-400"></i>
                         </div>
@@ -333,11 +333,24 @@
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM Content Loaded');
+            
+            // 检查所有DOM元素是否存在
+            if (!startStopBtn) {
+                console.error('Start/Stop button not found');
+                return;
+            }
+            
             // 尝试请求屏幕常亮
             initScreenLock();
             
             // 事件监听
-            startStopBtn.addEventListener('click', toggleMonitoring);
+            startStopBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Start/Stop button clicked');
+                toggleMonitoring();
+            });
+            
             toggleScreenLock.addEventListener('click', toggleScreenLockHandler);
             exportBtn.addEventListener('click', exportData);
             clearDataBtn.addEventListener('click', clearData);
@@ -350,6 +363,8 @@
             
             // 更新UI状态
             updateUI();
+            
+            console.log('Event listeners attached successfully');
         });
 
         // 屏幕常亮相关函数
@@ -400,6 +415,7 @@
 
         // 监控相关函数
         function toggleMonitoring() {
+            console.log('Toggle monitoring clicked');
             if (monitorInterval) {
                 stopMonitoring();
             } else {
@@ -408,12 +424,23 @@
         }
 
         function startMonitoring() {
+            console.log('Starting monitoring...');
             const url = urlInput.value.trim();
             const interval = parseInt(intervalInput.value);
             const timeout = parseInt(timeoutInput.value);
 
+            console.log('Configuration:', { url, interval, timeout });
+
             if (!url) {
                 alert('请输入请求地址');
+                return;
+            }
+
+            // URL validation - be more flexible
+            try {
+                new URL(url);
+            } catch {
+                alert('请输入有效的URL地址');
                 return;
             }
 
@@ -458,6 +485,7 @@
         }
 
         async function fetchData(url, timeout) {
+            console.log('Fetching data from:', url);
             const startTime = performance.now();
             let isTimeout = false;
             let responseTime = 0;
@@ -475,39 +503,78 @@
             }, timeout);
             
             try {
-                // 执行请求
-                const response = await fetch(url, { signal });
+                // 执行请求 - 先尝试CORS，失败后尝试no-cors
+                let response;
+                try {
+                    response = await fetch(url, { 
+                        signal,
+                        mode: 'cors',
+                        cache: 'no-cache'
+                    });
+                } catch (corsError) {
+                    console.log('CORS failed, trying no-cors mode:', corsError);
+                    // CORS失败，尝试no-cors模式
+                    response = await fetch(url, { 
+                        signal,
+                        mode: 'no-cors',
+                        cache: 'no-cache'
+                    });
+                }
                 clearTimeout(timeoutId);
                 
                 // 计算响应时间
                 responseTime = performance.now() - startTime;
                 
-                // 检查HTTP状态
-                if (!response.ok) {
-                    throw new Error(`HTTP错误，状态码: ${response.status}`);
+                // 解析响应 - 不管HTTP状态码，只要有响应就算成功
+                try {
+                    // 检查是否是no-cors模式的opaque响应
+                    if (response.type === 'opaque') {
+                        // no-cors模式下无法读取响应内容，但能确认服务器响应了
+                        responseData = `服务器响应 (no-cors模式)`;
+                    } else {
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            responseData = await response.json();
+                        } else {
+                            responseData = await response.text();
+                        }
+                    }
+                } catch (parseError) {
+                    // 如果解析失败，使用状态信息
+                    if (response.type === 'opaque') {
+                        responseData = `服务器响应 (opaque)`;
+                    } else {
+                        responseData = `HTTP ${response.status} ${response.statusText}`;
+                    }
                 }
                 
-                // 解析响应
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    responseData = await response.json();
-                } else {
-                    responseData = await response.text();
-                }
-                
-                // 记录成功请求
+                // 记录成功请求 - 只要不超时就算成功
                 addRequestRecord({
                     timestamp: new Date().toISOString(),
                     url,
                     responseTime: Math.round(responseTime),
                     success: true,
-                    data: responseData
+                    data: responseData,
+                    httpStatus: response.status || 'unknown',
+                    responseType: response.type
                 });
             } catch (err) {
                 clearTimeout(timeoutId);
+                console.log('Request failed:', err);
                 
                 // 计算响应时间（即使超时）
                 responseTime = performance.now() - startTime;
+                
+                let errorMessage = err.message;
+                if (isTimeout) {
+                    errorMessage = '请求超时';
+                } else if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
+                    errorMessage = '网络连接失败';
+                } else if (err.name === 'AbortError') {
+                    errorMessage = '请求被中断';
+                } else {
+                    errorMessage = '网络错误';
+                }
                 
                 // 记录失败请求
                 addRequestRecord({
@@ -515,8 +582,8 @@
                     url,
                     responseTime: Math.round(responseTime),
                     success: false,
-                    error: isTimeout ? '请求超时' : err.message,
-                    data: isTimeout ? null : err.message
+                    error: errorMessage,
+                    data: errorMessage
                 });
             }
         }
