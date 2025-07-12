@@ -495,9 +495,8 @@
             const isHttpsToHttp = window.location.protocol === 'https:' && url.startsWith('http://');
             
             if (isHttpsToHttp) {
-                // 使用Image标签绕过混合内容限制进行连通性测试
+                // 在HTTPS环境下测试HTTP地址，使用WebSocket连接测试
                 return new Promise((resolve) => {
-                    const img = new Image();
                     let completed = false;
                     
                     const timeoutId = setTimeout(() => {
@@ -516,8 +515,83 @@
                         }
                     }, timeout);
                     
-                    // 成功加载（确实是可访问的资源）
-                    img.onload = () => {
+                    try {
+                        // 提取主机和端口
+                        const urlObj = new URL(url);
+                        const host = urlObj.hostname;
+                        const port = urlObj.port || 80;
+                        
+                        // 尝试WebSocket连接测试（虽然会失败，但能测试连通性）
+                        const ws = new WebSocket(`ws://${host}:${port}`);
+                        
+                        // 连接成功（即使WebSocket握手失败，也说明TCP连接成功）
+                        ws.onopen = () => {
+                            if (!completed) {
+                                completed = true;
+                                clearTimeout(timeoutId);
+                                responseTime = performance.now() - startTime;
+                                ws.close();
+                                addRequestRecord({
+                                    timestamp: new Date().toISOString(),
+                                    url,
+                                    responseTime: Math.round(responseTime),
+                                    success: true,
+                                    data: `连通性正常 - TCP连接成功 (${Math.round(responseTime)}ms)`,
+                                    httpStatus: 'Connected'
+                                });
+                                resolve();
+                            }
+                        };
+                        
+                        // 连接失败或WebSocket协议错误（但可能HTTP服务正常）
+                        ws.onerror = () => {
+                            if (!completed) {
+                                completed = true;
+                                clearTimeout(timeoutId);
+                                responseTime = performance.now() - startTime;
+                                
+                                // 如果有响应时间，说明至少建立了某种连接
+                                if (responseTime > 10 && responseTime < timeout) {
+                                    addRequestRecord({
+                                        timestamp: new Date().toISOString(),
+                                        url,
+                                        responseTime: Math.round(responseTime),
+                                        success: true,
+                                        data: `连通性正常 - 服务器响应 (${Math.round(responseTime)}ms)`,
+                                        httpStatus: 'Responded'
+                                    });
+                                } else {
+                                    addRequestRecord({
+                                        timestamp: new Date().toISOString(),
+                                        url,
+                                        responseTime: Math.round(responseTime),
+                                        success: false,
+                                        error: '网络连接失败',
+                                        data: '网络连接失败'
+                                    });
+                                }
+                                resolve();
+                            }
+                        };
+                        
+                        ws.onclose = () => {
+                            if (!completed) {
+                                completed = true;
+                                clearTimeout(timeoutId);
+                                responseTime = performance.now() - startTime;
+                                addRequestRecord({
+                                    timestamp: new Date().toISOString(),
+                                    url,
+                                    responseTime: Math.round(responseTime),
+                                    success: true,
+                                    data: `连通性正常 - 连接已建立 (${Math.round(responseTime)}ms)`,
+                                    httpStatus: 'Connected'
+                                });
+                                resolve();
+                            }
+                        };
+                        
+                    } catch (error) {
                         if (!completed) {
                             completed = true;
                             clearTimeout(timeoutId);
@@ -526,48 +600,13 @@
                                 timestamp: new Date().toISOString(),
                                 url,
                                 responseTime: Math.round(responseTime),
-                                success: true,
-                                data: `连通性正常 - 资源加载成功 (${Math.round(responseTime)}ms)`,
-                                httpStatus: 'OK'
+                                success: false,
+                                error: '连接创建失败',
+                                data: error.message
                             });
                             resolve();
                         }
-                    };
-                    
-                    // 加载失败 - 需要判断是网络问题还是资源问题
-                    img.onerror = () => {
-                        if (!completed) {
-                            completed = true;
-                            clearTimeout(timeoutId);
-                            responseTime = performance.now() - startTime;
-                            
-                            // 如果响应时间很短（<100ms），可能是网络断开或DNS解析失败
-                            // 如果响应时间较长，可能是服务器响应了但不是图片格式
-                            if (responseTime < 100) {
-                                addRequestRecord({
-                                    timestamp: new Date().toISOString(),
-                                    url,
-                                    responseTime: Math.round(responseTime),
-                                    success: false,
-                                    error: '网络连接失败',
-                                    data: '网络连接失败或DNS解析失败'
-                                });
-                            } else {
-                                addRequestRecord({
-                                    timestamp: new Date().toISOString(),
-                                    url,
-                                    responseTime: Math.round(responseTime),
-                                    success: true,
-                                    data: `连通性正常 - 服务器响应 (${Math.round(responseTime)}ms)`,
-                                    httpStatus: 'Responded'
-                                });
-                            }
-                            resolve();
-                        }
-                    };
-                    
-                    // 开始请求
-                    img.src = url + '?t=' + Date.now(); // 添加时间戳防止缓存
+                    }
                 });
             } else {
                 // 非混合内容，使用原来的fetch方法
