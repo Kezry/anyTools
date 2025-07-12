@@ -487,91 +487,134 @@
         async function fetchData(url, timeout) {
             console.log('Fetching data from:', url);
             const startTime = performance.now();
-            let isTimeout = false;
             let responseTime = 0;
             let responseData = null;
-            let error = null;
+            let success = false;
             
-            // 创建超时控制器
-            const controller = new AbortController();
-            const signal = controller.signal;
+            // 检测是否是混合内容问题（HTTPS页面访问HTTP资源）
+            const isHttpsToHttp = window.location.protocol === 'https:' && url.startsWith('http://');
             
-            // 设置超时
-            const timeoutId = setTimeout(() => {
-                isTimeout = true;
-                controller.abort();
-            }, timeout);
-            
-            try {
-                // 对于跨域请求，直接使用no-cors模式进行连通性测试
-                const response = await fetch(url, { 
-                    signal,
-                    mode: 'no-cors',
-                    cache: 'no-cache'
+            if (isHttpsToHttp) {
+                // 使用Image标签绕过混合内容限制进行连通性测试
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    const timeoutId = setTimeout(() => {
+                        success = false;
+                        responseTime = performance.now() - startTime;
+                        addRequestRecord({
+                            timestamp: new Date().toISOString(),
+                            url,
+                            responseTime: Math.round(responseTime),
+                            success: false,
+                            error: '请求超时',
+                            data: '请求超时'
+                        });
+                        resolve();
+                    }, timeout);
+                    
+                    // 成功加载（即使404也算连通）
+                    img.onload = () => {
+                        clearTimeout(timeoutId);
+                        responseTime = performance.now() - startTime;
+                        addRequestRecord({
+                            timestamp: new Date().toISOString(),
+                            url,
+                            responseTime: Math.round(responseTime),
+                            success: true,
+                            data: `连通性正常 - 图片加载成功 (${Math.round(responseTime)}ms)`,
+                            httpStatus: 'OK'
+                        });
+                        resolve();
+                    };
+                    
+                    // 加载失败但可能是连通的（比如不是图片格式）
+                    img.onerror = () => {
+                        clearTimeout(timeoutId);
+                        responseTime = performance.now() - startTime;
+                        addRequestRecord({
+                            timestamp: new Date().toISOString(),
+                            url,
+                            responseTime: Math.round(responseTime),
+                            success: true,
+                            data: `连通性正常 - 服务器响应 (${Math.round(responseTime)}ms)`,
+                            httpStatus: 'Responded'
+                        });
+                        resolve();
+                    };
+                    
+                    // 开始请求
+                    img.src = url + '?t=' + Date.now(); // 添加时间戳防止缓存
                 });
-                clearTimeout(timeoutId);
+            } else {
+                // 非混合内容，使用原来的fetch方法
+                const controller = new AbortController();
+                const signal = controller.signal;
                 
-                // 计算响应时间
-                responseTime = performance.now() - startTime;
+                const timeoutId = setTimeout(() => {
+                    controller.abort();
+                }, timeout);
                 
-                // no-cors模式下只能判断连通性，无法读取具体内容
-                // 但这对于ms级别的连通性测试已经足够
-                if (response.type === 'opaque') {
-                    responseData = `连通性正常 (${Math.round(responseTime)}ms)`;
-                } else {
-                    // 同域请求可以读取内容
-                    try {
-                        const contentType = response.headers.get('content-type');
-                        if (contentType && contentType.includes('application/json')) {
-                            responseData = await response.json();
-                        } else {
-                            const text = await response.text();
-                            responseData = text.length > 200 ? 
-                                `${text.substring(0, 200)}...` : 
-                                text;
+                try {
+                    const response = await fetch(url, { 
+                        signal,
+                        mode: 'no-cors',
+                        cache: 'no-cache'
+                    });
+                    clearTimeout(timeoutId);
+                    
+                    responseTime = performance.now() - startTime;
+                    
+                    if (response.type === 'opaque') {
+                        responseData = `连通性正常 (${Math.round(responseTime)}ms)`;
+                    } else {
+                        try {
+                            const contentType = response.headers.get('content-type');
+                            if (contentType && contentType.includes('application/json')) {
+                                responseData = await response.json();
+                            } else {
+                                const text = await response.text();
+                                responseData = text.length > 200 ? 
+                                    `${text.substring(0, 200)}...` : 
+                                    text;
+                            }
+                        } catch (parseError) {
+                            responseData = `HTTP ${response.status} ${response.statusText}`;
                         }
-                    } catch (parseError) {
-                        responseData = `HTTP ${response.status} ${response.statusText}`;
                     }
+                    
+                    addRequestRecord({
+                        timestamp: new Date().toISOString(),
+                        url,
+                        responseTime: Math.round(responseTime),
+                        success: true,
+                        data: responseData,
+                        httpStatus: response.status || 'N/A',
+                        responseType: response.type
+                    });
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    console.log('Request failed:', err);
+                    
+                    responseTime = performance.now() - startTime;
+                    
+                    let errorMessage = err.message;
+                    if (err.name === 'AbortError') {
+                        errorMessage = '请求超时';
+                    } else if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
+                        errorMessage = '网络连接失败';
+                    } else {
+                        errorMessage = '网络错误';
+                    }
+                    
+                    addRequestRecord({
+                        timestamp: new Date().toISOString(),
+                        url,
+                        responseTime: Math.round(responseTime),
+                        success: false,
+                        error: errorMessage,
+                        data: errorMessage
+                    });
                 }
-                
-                // 记录成功请求 - 能收到响应就算成功
-                addRequestRecord({
-                    timestamp: new Date().toISOString(),
-                    url,
-                    responseTime: Math.round(responseTime),
-                    success: true,
-                    data: responseData,
-                    httpStatus: response.status || 'N/A',
-                    responseType: response.type
-                });
-            } catch (err) {
-                clearTimeout(timeoutId);
-                console.log('Request failed:', err);
-                
-                // 计算响应时间（即使超时）
-                responseTime = performance.now() - startTime;
-                
-                let errorMessage = err.message;
-                if (isTimeout) {
-                    errorMessage = '请求超时';
-                } else if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
-                    errorMessage = '网络连接失败';
-                } else if (err.name === 'AbortError') {
-                    errorMessage = '请求被中断';
-                } else {
-                    errorMessage = '网络错误';
-                }
-                
-                // 记录失败请求
-                addRequestRecord({
-                    timestamp: new Date().toISOString(),
-                    url,
-                    responseTime: Math.round(responseTime),
-                    success: false,
-                    error: errorMessage,
-                    data: errorMessage
-                });
             }
         }
 
